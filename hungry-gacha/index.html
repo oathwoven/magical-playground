@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今天吃什麼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  /* Layout: 單欄大字版面，像夜市攤位的菜單板。分類按鈕 → 大結果卡 → 大按鈕 → 地圖 → 編輯清單 */
+  :root {
+    --bg: #f3e9da;
+    --surface: #fbf6ee;
+    --fg: #3a2a20;
+    --muted: #735d4d;
+    --line: #dcc9b0;
+    --accent: #6b4128;
+    --on-accent: #fff8ee;
+    --lantern: #d2ac86;
+    --on-lantern: #2f2016;
+    --chip-bg: #ebdcc6;
+    --focus: #1d5fd1;
+    --font-display: "Chiron GoRound TC", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+  /* 預設是拿鐵淺色，不跟著系統深色；黑金版由右上角按鈕切換（data-theme="dark"） */
+  :root[data-theme="dark"] {
+    --bg: #121010; --surface: #1d1914; --fg: #f1e6d2; --muted: #b9a98f; --line: #3d3324;
+    --accent: #d4a64a; --on-accent: #17120a; --lantern: #efe0bb; --on-lantern: #1c150a;
+    --chip-bg: #2a231a; --focus: #8fb8ff; color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 20px;
+    line-height: 1.6;
+    padding-block: 24px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  main { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+  button, input, select { font: inherit; color: inherit; }
+  button, a.btn { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  header h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(38px, 11vw, 56px);
+    line-height: 1.15;
+    margin: 0;
+    color: var(--accent);
+  }
+  header p { margin: 6px 0 0; color: var(--muted); font-size: 18px; }
+  .top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+  .top > div { min-width: 0; }
+  .theme-btn {
+    flex: 0 0 auto; min-height: 44px; padding: 6px 14px;
+    border: 2px solid var(--line); border-radius: 999px;
+    background: var(--chip-bg); font-weight: 700; font-size: 16px; cursor: pointer;
+  }
+
+  label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
+  .input {
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 16px;
+    border: 2px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    font-weight: 500;
+  }
+  .input::placeholder { color: var(--muted); opacity: .8; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    min-height: 52px;
+    padding: 8px 20px;
+    border: 2px solid var(--line);
+    border-radius: 999px;
+    background: var(--chip-bg);
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .count { margin: 0; color: var(--muted); font-size: 17px; }
+  .label-sm { margin: 0 0 8px; font-weight: 700; }
+  .btn-up { background: var(--chip-bg); border: 2px dashed var(--accent); color: var(--fg); }
+
+  .result {
+    background: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    padding: 26px 20px 28px;
+    text-align: center;
+    min-height: 220px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  }
+  .tag {
+    display: inline-block;
+    padding: 2px 14px;
+    border-radius: 999px;
+    background: var(--lantern);
+    color: var(--on-lantern);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: .08em;
+  }
+  .tag[hidden] { display: none; }
+  .name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(46px, 15vw, 88px);
+    line-height: 1.15;
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+  .name.idle { font-size: clamp(34px, 10vw, 54px); color: var(--muted); }
+  .name.rolling { opacity: .55; }
+  .hint { margin: 0; color: var(--muted); font-size: 17px; }
+  .subname {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(30px, 9vw, 46px); line-height: 1.2; margin: 0;
+    color: var(--accent); overflow-wrap: anywhere; text-wrap: balance;
+  }
+  .btn-sub { min-height: 52px; padding: 8px 22px; font-size: 19px; background: var(--chip-bg); border-color: var(--line); color: var(--fg); }
+
+  .actions { display: flex; flex-direction: column; gap: 14px; }
+  .btn {
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    min-height: 60px; padding: 10px 20px;
+    border: 2px solid transparent; border-radius: 16px;
+    font-weight: 700; font-size: 21px; text-decoration: none;
+  }
+  .btn-main { min-height: 84px; background: var(--accent); color: var(--on-accent); font-size: 30px; font-family: var(--font-display); font-weight: 800; letter-spacing: .1em; }
+  .btn-ghost { background: transparent; border-color: var(--line); color: var(--fg); }
+  .btn-map { background: var(--lantern); color: var(--on-lantern); }
+  .btn[disabled] { opacity: .6; cursor: default; }
+  .btn-map[aria-disabled="true"] { opacity: .55; cursor: default; }
+  .btn:active:not([disabled]) { transform: translateY(1px); }
+  .link-btn { background: none; border: 0; padding: 6px 0; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; font-size: 17px; align-self: center; }
+
+  details.panel { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 4px 18px; }
+  details.panel summary { min-height: 56px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+  .panel-body { display: flex; flex-direction: column; gap: 16px; padding-block: 8px 18px; }
+  .add-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .add-row .input { flex: 1 1 200px; min-width: 0; }
+  .btn-add { background: var(--accent); color: var(--on-accent); min-height: 56px; font-size: 20px; flex: 0 0 auto; }
+  .status { margin: 0; min-height: 1.6em; color: var(--muted); font-size: 17px; }
+  .items { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+  .items li { display: flex; align-items: stretch; border: 2px solid var(--line); border-radius: 12px; background: var(--chip-bg); overflow: hidden; }
+  .items span { padding: 6px 12px; font-size: 18px; overflow-wrap: anywhere; min-width: 0; }
+  .items button { border: 0; border-left: 2px solid var(--line); background: transparent; min-width: 48px; font-size: 22px; line-height: 1; color: var(--accent); font-weight: 700; }
+  .foot { text-align: center; color: var(--muted); font-size: 15px; margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<style>html{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>今天吃什麼</h1>
+      <p>想不出來要吃什麼嗎？試試手氣，讓上天替你決定吧！</p>
+    </div>
+    <button class="theme-btn" id="theme" type="button">黑金版</button>
+  </header>
+
+  <label class="field" for="loc">
+    你現在在哪裡？
+    <input id="loc" class="input" type="text" inputmode="text" autocomplete="off" placeholder="例如：鳳山站、巨蛋、公司附近">
+  </label>
+
+  <section aria-label="今天的荷包心情">
+    <p class="label-sm">今天的荷包心情</p>
+    <div class="chips" id="modes"></div>
+  </section>
+
+  <section aria-label="餐點分類">
+    <div class="chips" id="chips"></div>
+    <p class="count" id="count"></p>
+  </section>
+
+  <section class="result" aria-live="polite">
+    <span class="tag" id="tag" hidden></span>
+    <p class="name idle" id="name">今天吃什麼？</p>
+    <p class="subname" id="subname" hidden></p>
+    <p class="hint" id="hint">按下面的大按鈕開始，抽到之後就能換一個或找附近的店。</p>
+    <button class="btn btn-sub" id="sub" type="button" hidden>再細選一下</button>
+  </section>
+
+  <section class="actions">
+    <button class="btn btn-main" id="go" type="button">幫我決定</button>
+    <button class="btn btn-ghost" id="skip" type="button" disabled>不想吃這個，換一個</button>
+    <button class="btn btn-up" id="up" type="button" hidden>什麼？不夠貴？</button>
+    <a class="btn btn-map" id="map" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true" tabindex="-1">找附近的店</a>
+    <button class="link-btn" id="unskip" type="button" hidden></button>
+  </section>
+
+  <details class="panel" id="manage">
+    <summary>編輯清單：自己加、自己刪</summary>
+    <div class="panel-body">
+      <label class="field" for="manageCat">要編輯哪一類？
+        <select id="manageCat" class="input"></select>
+      </label>
+      <form class="add-row" id="addForm">
+        <input id="newItem" class="input" type="text" maxlength="20" autocomplete="off" placeholder="想加什麼？例如：臭臭鍋" aria-label="新增的餐點名稱">
+        <button class="btn btn-add" type="submit">加入</button>
+      </form>
+      <p class="status" id="status" aria-live="polite"></p>
+      <ul class="items" id="items"></ul>
+      <button class="link-btn" id="reset" type="button">恢復成預設清單</button>
+    </div>
+  </details>
+
+  <p class="foot">按「找附近的店」會在新分頁打開 Google 地圖，看店家與評價。</p>
+</main>
+
+<script>
+(function () {
+  var CATS = [
+    { id: 'all', label: '什麼都可以' },
+    { id: 'breakfast', label: '早餐' },
+    { id: 'meal', label: '午晚餐' },
+    { id: 'snack', label: '小吃' },
+    { id: 'dessert', label: '甜點' },
+    { id: 'drink', label: '飲料' }
+  ];
+  var CHAINS = ['麥當勞', '肯德基', '丹丹漢堡', '21世紀', '小7'];
+  var QUERY_OVERRIDE = {
+    '小7': '7-ELEVEN', '21世紀': '21世紀風味館', '咖啡': '咖啡店', '拿鐵': '咖啡店', '現打果汁': '果汁店',
+    '友善時光（全家）': '全家', 'i珍食（小7）': '7-ELEVEN', '惜食計畫（全聯）': '全聯',
+    '泡麵': '便利商店', '超商特價便當': '便利商店', '饅頭': '饅頭店', '吐司': '麵包店', '即期麵包': '全聯', '地瓜': '烤地瓜',
+    '烤雞胸': '健康餐盒', '低GI餐盒': '健康餐盒', '水煮餐盒': '健康餐盒', '蒟蒻': '輕食', '自助餐（多菜少飯）': '自助餐',
+    '無糖豆漿': '豆漿店', '黑咖啡': '咖啡店', '氣泡水': '便利商店',
+    '飯店自助餐': '飯店 自助餐', '飯店下午茶': '飯店 下午茶', '精品手沖咖啡': '精品咖啡', '特調咖啡': '咖啡店', '氣泡飲特調': '特調飲品'
+  };
+  // 抽到細項後，地圖怎麼搜：sub = 只搜細項；join = 細項加餐點名稱；沒列到的 = 仍搜餐點本身
+  var SUB_SEARCH = { '火鍋': 'sub', '乾麵': 'sub', '炒飯': 'sub', '咖哩飯': 'sub', '牛肉麵': 'join', '拉麵': 'join', '義大利麵': 'join', '水餃': 'join', '炸雞排': 'join' };
+  var DEFAULTS = {
+    breakfast: ['蛋餅','飯糰','燒餅油條','豆漿','米漿','三明治','鐵板麵','蘿蔔糕','厚片吐司','漢堡蛋','小籠包','韭菜盒','蔥油餅','清粥小菜','皮蛋瘦肉粥','海產粥','虱目魚粥','碗粿','牛肉湯','饅頭夾蛋','水煎包','麥當勞','肯德基','丹丹漢堡','21世紀','小7'],
+    meal: ['滷肉飯','雞肉飯','焢肉飯','排骨便當','雞腿便當','自助餐','炒飯','咖哩飯','日式豬排飯','牛肉麵','乾麵','榨菜肉絲麵','餛飩麵','涼麵','肉羹麵','鍋燒麵','拉麵','義大利麵','米粉湯','水餃','火鍋','麻辣鍋','麻辣乾鍋','壽喜燒','薑母鴨','羊肉爐','熱炒','合菜','三杯雞','麻油雞','酸菜魚','燒肉','鐵板燒','牛排','藥膳排骨','沙茶牛羊肉','烤鴨/烤雞','日式料理','壽司','麥當勞','肯德基','丹丹漢堡','21世紀','小7'],
+    snack: ['鹽酥雞','炸雞排','大腸包小腸','烤肉串','臭豆腐','地瓜球','胡椒餅','肉圓','烤玉米','蚵仔煎','豬血糕','鹹水雞','黑白切','加熱滷味','小櫃子滷味','麻辣燙','關東煮','四神湯','蚵仔麵線','擔仔麵'],
+    dessert: ['豆花','芒果冰','剉冰','愛玉','仙草','紅豆湯','湯圓','地瓜圓','雞蛋糕','車輪餅','鳳梨酥','芋圓','麻糬','綠豆沙','冰淇淋','泡芙','甜甜圈','可麗餅','鬆餅','蛋塔'],
+    drink: ['珍珠奶茶','鮮奶茶','紅茶','綠茶','烏龍茶','烏龍綠','梅子綠','鮮果特調','現打果汁','冬瓜茶','青草茶','木瓜牛奶','咖啡','拿鐵','多多綠','奶蓋茶','布丁奶茶','氣泡飲','蜂蜜檸檬','檸檬紅茶']
+  };
+  // 深入探討：抽到這些餐點時，可以再抽細項（內建，不能在畫面上編輯）
+  var SUBS = {
+    '三明治': ['鮪魚','總匯','肉鬆','火腿','起司','培根','豬排','雞肉'],
+    '蛋餅': ['原味','起司','玉米','培根','肉鬆','燒肉'],
+    '飯糰': ['傳統','紫米','玉米','起司','鮪魚'],
+    '豆漿': ['無糖豆漿','有糖豆漿','鹹豆漿'],
+    '厚片吐司': ['巧克力','花生','奶酥','草莓','起司'],
+    '漢堡蛋': ['豬排','雞腿','培根','起司'],
+    '鐵板麵': ['黑胡椒','蘑菇','蕃茄'],
+    '乾麵': ['肉燥乾麵','麻醬乾麵','炸醬乾麵','擔擔乾麵'],
+    '炒飯': ['蛋炒飯','蝦仁炒飯','牛肉炒飯','鳳梨炒飯','泡菜炒飯'],
+    '咖哩飯': ['豬排咖哩','雞肉咖哩','牛肉咖哩'],
+    '牛肉麵': ['紅燒','清燉','番茄','麻辣'],
+    '拉麵': ['豚骨','醬油','味噌','鹽味'],
+    '義大利麵': ['青醬','白醬','紅醬','焗烤'],
+    '火鍋': ['小火鍋','涮涮鍋','海鮮鍋','牛奶鍋','石頭火鍋','酸菜白肉鍋'],
+    '水餃': ['豬肉','韭菜','高麗菜','蝦仁','玉米'],
+    '炸雞排': ['原味','辣味','起司','海苔'],
+    '鹽酥雞': ['雞肉','甜不辣','米血','花枝丸','花椰菜','杏鮑菇'],
+    '豆花': ['花生','粉圓','紅豆','芋圓','綜合'],
+    '剉冰': ['紅豆','綠豆','芋頭','花生','湯圓'],
+    '冰淇淋': ['香草','巧克力','草莓','抹茶'],
+    '鮮果特調': ['葡萄綠茶','甘蔗青','柳橙綠','百香綠','檸檬綠','蘋果紅茶'],
+    '現打果汁': ['西瓜','柳橙','甘蔗','木瓜','芒果','鳳梨','蘋果'],
+    '咖啡': ['美式','拿鐵','卡布奇諾','摩卡']
+  };
+  // 今天的荷包心情：選了之後，蓋過下面的分類（內建清單，不能在畫面上編輯）
+  var MODE_ORDER = ['payday', 'broke', 'diet'];
+  var MODES = {
+    payday: {
+      label: '今天發薪',
+      notes: ['發薪了！今天好好犒賞自己，大吃大喝一下。', '辛苦一個月了，今天值得吃好一點。', '錢包有力氣的日子，不吃點好的對不起自己。', '今天可以大方一點，先吃再說。', '約上好朋友一起吧，吃飯就是要熱鬧。'],
+      lists: {
+        all: ['燒肉', '吃到飽', '鐵板燒', '牛排', '壽喜燒', '居酒屋', '海鮮餐廳', '飯店自助餐', '約會餐廳', '火鍋吃到飽'],
+        dessert: ['飯店下午茶', '法式甜點', '手工冰淇淋', '精緻蛋糕', '冰品吃到飽'],
+        drink: ['精品手沖咖啡', '茶館', '特調咖啡', '氣泡飲特調']
+      }
+    },
+    broke: {
+      label: '月底了…',
+      notes: ['撐過去就好，但還是要吃飽喔。下個月一定要好好對自己。', '月底的泡麵也是一種浪漫，撐過去就有薪水了。', '再撐幾天，發薪日就在向你招手。', '吃飽才有力氣賺下個月的薪水。', '省錢不等於虧待自己，今天先簡單吃。', '下個月一定要好好對自己。'],
+      lists: {
+        all: ['泡麵', '友善時光（全家）', 'i珍食（小7）', '惜食計畫（全聯）', '饅頭', '吐司', '白飯配醬瓜', '水煮蛋', '地瓜', '超商特價便當', '回家吃冰箱', '去爸媽家蹭飯'],
+        dessert: ['特價香蕉', '即期麵包', '冰箱裡的剩水果'],
+        drink: ['白開水', '公司的免費茶包', '家裡的麥茶']
+      }
+    },
+    diet: {
+      label: '該減肥了',
+      notes: ['均衡吃、配合運動，不用餓肚子。', '吃得輕盈一點，但蛋白質和蔬菜都要吃到。', '慢慢來，不用一天就做完所有事。', '多喝水、多走路，比什麼都實在。', '吃飽一點，比餓過頭再暴食好，穩穩來就好。', '今天吃輕一點，明天也不用懲罰自己。'],
+      drinkNotes: ['無糖很棒，不過要瘦還是要配合運動喔！', '無糖飲料很好，記得也要多喝水。', '喝無糖的你已經很棒了，再配合運動就更好。', '偶爾想喝甜的也沒關係，慢慢來就好。'],
+      lists: {
+        all: ['沙拉', '烤雞胸', '燙青菜', '豆腐料理', '自助餐（多菜少飯）', '味噌湯', '蒟蒻', '無糖豆漿', '水煮餐盒', '低GI餐盒', '涼拌小菜', '清蒸料理', '輕食餐廳'],
+        dessert: ['無糖優格', '水果', '烤地瓜', '不加糖的愛玉'],
+        drink: ['無糖綠茶', '無糖烏龍茶', '無糖紅茶', '黑咖啡', '氣泡水', '無糖青草茶']
+      }
+    }
+  };
+  // 「什麼？不夠貴？」三級爬樓梯
+  var ESCALATE = [
+    { items: ['無菜單料理', '板前壽司', '頂級和牛燒肉', '高級鐵板燒', '法式餐廳'], quips: ['荷包準備好了嗎？', '好的，往上一階。', '這樣就滿足了嗎？看來還不夠。', '菜單開始變少了。'] },
+    { items: ['主廚私房菜', '米其林推薦餐廳', '飯店主廚餐廳', '頂級海鮮餐廳', '懷石料理'], quips: ['你確定嗎…真的要再往上嗎？', '現在開始，訂位要提早喔。', '服裝請記得穿整齊一點。', '這家可能要提前一個月訂位。'] },
+    { items: ['米其林星級餐廳', '板前懷石', '頂級割烹', '星級飯店主廚桌'], quips: ['已經沒有價錢可以看了，只剩好心情。', '找不到的話，搭高鐵去別的縣市也是一種浪漫（開玩笑的）。', '這一級通常沒有菜單，只有主廚的心情。', '地圖搜不到也沒關係，這是一種境界。'] }
+  ];
+  // 這些不是店，地圖按鈕會變灰
+  var NOMAP = ['回家吃冰箱', '去爸媽家蹭飯', '白飯配醬瓜', '水煮蛋', '白開水', '公司的免費茶包', '家裡的麥茶', '冰箱裡的剩水果'];
+  var STORE = 'todayEat.v1';
+  var LOC_KEY = 'todayEat.loc';
+  var REAL = ['breakfast', 'meal', 'snack', 'dessert', 'drink'];
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  function loadData() {
+    var raw = lsGet(STORE);
+    if (raw) {
+      try {
+        var d = JSON.parse(raw), ok = true;
+        REAL.forEach(function (c) { if (!Array.isArray(d[c])) ok = false; });
+        if (ok) return d;
+      } catch (e) {}
+    }
+    return clone(DEFAULTS);
+  }
+  function saveData() { lsSet(STORE, JSON.stringify(data)); }
+
+  var data = loadData();
+  var cat = 'all';
+  var mode = null;
+  var tier = 0;
+  var last = null;
+  var current = null;
+  var skipped = [];
+  var rolling = false;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var chipsEl = $('chips'), countEl = $('count'), tagEl = $('tag'), nameEl = $('name'), hintEl = $('hint');
+  var goEl = $('go'), mapEl = $('map'), skipEl = $('skip'), unskipEl = $('unskip');
+  var subEl = $('sub'), subnameEl = $('subname'), curSub = null;
+  var upEl = $('up'), modesEl = $('modes');
+  var locEl = $('loc'), manageCatEl = $('manageCat'), newItemEl = $('newItem'), statusEl = $('status'), itemsEl = $('items');
+
+  function catLabel(id) {
+    for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].label;
+    return '';
+  }
+
+  // 回傳目前分類裡可抽的項目 [{name, cat}]（已去重，不含「不要」的）
+  function entries(includeSkipped) {
+    var seen = {}, out = [];
+    if (mode) {
+      var L = MODES[mode].lists, keys;
+      if (cat === 'all') keys = ['all', 'dessert', 'drink'];
+      else if (cat === 'drink') keys = ['drink'];
+      else if (cat === 'dessert') keys = ['dessert'];
+      else keys = ['all'];
+      keys.forEach(function (k) {
+        (L[k] || []).forEach(function (n) {
+          if (seen[n]) return;
+          seen[n] = true;
+          if (!includeSkipped && skipped.indexOf(n) !== -1) return;
+          out.push({ name: n, cat: k === 'drink' ? 'drink' : (k === 'dessert' ? 'dessert' : 'meal'), mode: mode });
+        });
+      });
+      return out;
+    }
+    var ids = cat === 'all' ? REAL : [cat];
+    ids.forEach(function (c) {
+      data[c].forEach(function (n) {
+        if (seen[n]) return;
+        seen[n] = true;
+        if (!includeSkipped && skipped.indexOf(n) !== -1) return;
+        out.push({ name: n, cat: CHAINS.indexOf(n) !== -1 ? 'chain' : c });
+      });
+    });
+    return out;
+  }
+
+  function pickOne() {
+    var pool = entries(false);
+    if (!pool.length) return null;
+    var cand = pool.filter(function (e) { return e.name !== last; });
+    if (!cand.length) cand = pool;
+    return cand[Math.floor(Math.random() * cand.length)];
+  }
+
+  function mapQuery(e) {
+    var base = QUERY_OVERRIDE[e.name] || (e.cat === 'drink' ? '手搖飲' : e.name);
+    if (curSub) {
+      var mode = SUB_SEARCH[e.name];
+      if (mode === 'sub') base = curSub;
+      else if (mode === 'join') base = curSub + e.name;
+    }
+    var loc = locEl.value.trim();
+    return { text: base + ' ' + (loc || '附近'), base: base };
+  }
+
+  function updateMap() {
+    if (!current || NOMAP.indexOf(current.name) !== -1) {
+      mapEl.href = '#';
+      mapEl.textContent = current ? '這個不用出門，沒有店可以找' : '找附近的店';
+      mapEl.setAttribute('aria-disabled', 'true');
+      mapEl.setAttribute('tabindex', '-1');
+      return;
+    }
+    var q = mapQuery(current);
+    mapEl.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.text);
+    mapEl.textContent = '找附近的店（搜尋：' + q.text + '）';
+    mapEl.setAttribute('aria-disabled', 'false');
+    mapEl.removeAttribute('tabindex');
+  }
+
+  function showResult(e) {
+    current = e;
+    last = e.name;
+    nameEl.className = 'name';
+    nameEl.textContent = e.name;
+    tagEl.textContent = e.mode
+      ? (e.tier ? MODES[e.mode].label + ' · 升級 ' + e.tier : MODES[e.mode].label)
+      : (e.cat === 'chain' ? '連鎖店' : catLabel(e.cat));
+    tagEl.hidden = false;
+    hintEl.textContent = hintFor(e);
+    skipEl.disabled = false;
+    upEl.hidden = mode !== 'payday';
+    upEl.disabled = tier >= ESCALATE.length;
+    upEl.textContent = tier >= ESCALATE.length ? '已經是天花板了' : '什麼？不夠貴？';
+    curSub = null;
+    subnameEl.hidden = true;
+    var subs = SUBS[e.name];
+    if (subs) {
+      subEl.textContent = '再細選一下（' + subs.length + ' 種）';
+      subEl.hidden = false;
+    } else {
+      subEl.hidden = true;
+    }
+    updateMap();
+  }
+
+  function showEmpty() {
+    current = null;
+    nameEl.className = 'name idle';
+    nameEl.textContent = '這一類沒有選項了';
+    tagEl.hidden = true;
+    hintEl.textContent = '到下面「編輯清單」加幾個，或換一個分類。';
+    skipEl.disabled = true;
+    subEl.hidden = true;
+    subnameEl.hidden = true;
+    upEl.hidden = true;
+    updateMap();
+  }
+
+  function resetResult() {
+    current = null;
+    tier = 0;
+    curSub = null;
+    nameEl.className = 'name idle';
+    nameEl.textContent = '今天吃什麼？';
+    tagEl.hidden = true;
+    subEl.hidden = true;
+    subnameEl.hidden = true;
+    upEl.hidden = true;
+    skipEl.disabled = true;
+    hintEl.textContent = '按下面的大按鈕開始，抽到之後就能換一個或找附近的店。';
+    updateMap();
+  }
+
+  var lastLine = '';
+  function pickLine(arr) {
+    var c = arr.filter(function (s) { return s !== lastLine; });
+    if (!c.length) c = arr;
+    lastLine = c[Math.floor(Math.random() * c.length)];
+    return lastLine;
+  }
+
+  function hintFor(e) {
+    if (e.mode === 'payday' && e.tier) return pickLine(ESCALATE[e.tier - 1].quips);
+    if (e.mode) {
+      var m = MODES[e.mode];
+      return pickLine((e.cat === 'drink' && m.drinkNotes) ? m.drinkNotes : m.notes);
+    }
+    return '不想吃這個？按「不想吃這個，換一個」。';
+  }
+
+  function roll() {
+    if (rolling) return;
+    tier = 0;
+    var final = pickOne();
+    if (!final) { showEmpty(); renderSkipInfo(); return; }
+    var pool = entries(true);
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || pool.length < 2) { showResult(final); return; }
+    rolling = true;
+    goEl.disabled = true;
+    skipEl.disabled = true;
+    nameEl.className = 'name rolling';
+    tagEl.hidden = true;
+    subEl.hidden = true;
+    subnameEl.hidden = true;
+    upEl.hidden = true;
+    hintEl.textContent = '抽抽抽…';
+    var n = 0;
+    var t = setInterval(function () {
+      nameEl.textContent = pool[Math.floor(Math.random() * pool.length)].name;
+      n++;
+      if (n >= 9) {
+        clearInterval(t);
+        rolling = false;
+        goEl.disabled = false;
+        skipEl.disabled = false;
+        showResult(final);
+      }
+    }, 70);
+  }
+
+  function renderSkipInfo() {
+    if (skipped.length) {
+      unskipEl.hidden = false;
+      unskipEl.textContent = '已經不要 ' + skipped.length + ' 個，把它們放回來';
+    } else {
+      unskipEl.hidden = true;
+    }
+  }
+
+  function renderChips() {
+    chipsEl.innerHTML = '';
+    CATS.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = c.label;
+      b.setAttribute('aria-pressed', String(c.id === cat));
+      b.addEventListener('click', function () {
+        cat = c.id;
+        if (c.id !== 'all') manageCatEl.value = c.id;
+        renderChips(); renderCount(); renderItems();
+      });
+      chipsEl.appendChild(b);
+    });
+  }
+
+  function renderModes() {
+    modesEl.innerHTML = '';
+    ['normal'].concat(MODE_ORDER).forEach(function (id) {
+      var isNormal = id === 'normal';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = isNormal ? '平常日' : MODES[id].label;
+      b.setAttribute('aria-pressed', String(isNormal ? mode === null : id === mode));
+      b.addEventListener('click', function () {
+        if (isNormal && mode === null) return;
+        mode = (isNormal || mode === id) ? null : id;
+        resetResult();
+        renderModes();
+        renderCount();
+      });
+      modesEl.appendChild(b);
+    });
+  }
+
+  function renderCount() {
+    if (mode) {
+      countEl.textContent = '「' + MODES[mode].label + '」模式，目前「' + catLabel(cat) + '」有 ' + entries(true).length + ' 個選項（編輯清單只會改到一般清單）';
+      return;
+    }
+    countEl.textContent = '目前「' + catLabel(cat) + '」有 ' + entries(true).length + ' 個選項';
+  }
+
+  function renderManageSelect() {
+    manageCatEl.innerHTML = '';
+    REAL.forEach(function (id) {
+      var o = document.createElement('option');
+      o.value = id; o.textContent = catLabel(id);
+      manageCatEl.appendChild(o);
+    });
+    manageCatEl.value = 'snack';
+  }
+
+  function renderItems() {
+    var c = manageCatEl.value;
+    itemsEl.innerHTML = '';
+    data[c].forEach(function (n, idx) {
+      var li = document.createElement('li');
+      var s = document.createElement('span'); s.textContent = n;
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = '×';
+      b.setAttribute('aria-label', '刪掉 ' + n);
+      b.addEventListener('click', function () {
+        data[c].splice(idx, 1);
+        saveData();
+        statusEl.textContent = '已從「' + catLabel(c) + '」刪掉「' + n + '」';
+        renderItems(); renderCount();
+      });
+      li.appendChild(s); li.appendChild(b);
+      itemsEl.appendChild(li);
+    });
+  }
+
+  goEl.addEventListener('click', roll);
+  mapEl.addEventListener('click', function (ev) {
+    if (mapEl.getAttribute('aria-disabled') === 'true') ev.preventDefault();
+  });
+  skipEl.addEventListener('click', function () {
+    if (current && skipped.indexOf(current.name) === -1) skipped.push(current.name);
+    renderSkipInfo();
+    roll();
+  });
+  upEl.addEventListener('click', function () {
+    if (mode !== 'payday' || !current || tier >= ESCALATE.length) return;
+    tier++;
+    var list = ESCALATE[tier - 1].items;
+    var cand = list.filter(function (n) { return n !== last; });
+    if (!cand.length) cand = list;
+    showResult({ name: cand[Math.floor(Math.random() * cand.length)], cat: 'meal', mode: 'payday', tier: tier });
+  });
+  subEl.addEventListener('click', function () {
+    if (!current) return;
+    var subs = SUBS[current.name];
+    if (!subs) return;
+    var cand = subs.filter(function (s) { return s !== curSub; });
+    curSub = cand[Math.floor(Math.random() * cand.length)];
+    subnameEl.textContent = '→ ' + curSub;
+    subnameEl.hidden = false;
+    subEl.textContent = '再細選一次';
+    updateMap();
+  });
+  unskipEl.addEventListener('click', function () { skipped = []; renderSkipInfo(); renderCount(); });
+  locEl.addEventListener('input', function () { lsSet(LOC_KEY, locEl.value); updateMap(); });
+  manageCatEl.addEventListener('change', renderItems);
+
+  $('addForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var v = newItemEl.value.trim();
+    var c = manageCatEl.value;
+    if (!v) { statusEl.textContent = '先打上想加的名稱喔。'; return; }
+    if (data[c].indexOf(v) !== -1) { statusEl.textContent = '「' + catLabel(c) + '」裡已經有「' + v + '」了。'; return; }
+    data[c].unshift(v);
+    saveData();
+    newItemEl.value = '';
+    statusEl.textContent = '已加入「' + v + '」到「' + catLabel(c) + '」。';
+    renderItems(); renderCount();
+  });
+
+  $('reset').addEventListener('click', function () {
+    data = clone(DEFAULTS);
+    saveData();
+    skipped = [];
+    statusEl.textContent = '已恢復成預設清單。';
+    renderItems(); renderCount(); renderSkipInfo();
+  });
+
+  var THEME_KEY = 'todayEat.theme';
+  var themeBtn = $('theme');
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '拿鐵版' : '黑金版';
+  }
+  var curTheme = lsGet(THEME_KEY) || (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+  applyTheme(curTheme);
+  themeBtn.addEventListener('click', function () {
+    curTheme = curTheme === 'dark' ? 'light' : 'dark';
+    lsSet(THEME_KEY, curTheme);
+    applyTheme(curTheme);
+  });
+
+  var savedLoc = lsGet(LOC_KEY);
+  if (savedLoc) locEl.value = savedLoc;
+  renderManageSelect();
+  renderModes();
+  renderChips();
+  renderCount();
+  renderItems();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>學員專屬提示詞小卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+html{color-scheme:light;scroll-behavior:smooth}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:#f3e9da;color:#3a2a20;font-family:'Noto Sans TC',sans-serif;line-height:1.65;font-size:19px}
+main{max-width:720px;margin:0 auto;padding:32px 18px 72px}
+.eyebrow{display:inline-block;background:#d2ac86;color:#2f2016;font-weight:700;font-size:16px;padding:6px 16px;border-radius:999px;margin:0 0 14px}
+h1{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-weight:800;font-size:40px;line-height:1.15;margin:0 0 12px}
+.sub{font-size:20px;color:#5a4535;margin:0 0 8px}
+.hint{font-size:18px;color:#735d4d;margin:0 0 20px}
+nav{position:sticky;top:0;z-index:5;background:#f3e9da;margin:0 -18px 8px;padding:10px 18px;border-bottom:2px solid #dcc9b0;display:flex;gap:10px;overflow-x:auto;white-space:nowrap}
+nav a{flex:none;text-decoration:none;color:#3a2a20;background:#ebdcc6;font-weight:700;font-size:17px;padding:8px 16px;border-radius:999px}
+nav a:focus-visible{outline:3px solid #6b4128}
+h2.sec{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:28px;margin:36px 0 14px;scroll-margin-top:72px}
+.card{background:#fbf6ee;border:2px solid #dcc9b0;border-radius:24px;padding:22px 20px 20px;margin:0 0 20px}
+.pill{display:inline-block;background:#6b4128;color:#fff8ee;font-weight:500;font-size:16px;padding:5px 14px;border-radius:999px;margin:0 0 10px}
+.card h3{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:26px;line-height:1.3;margin:0 0 14px}
+.lab{font-size:16px;font-weight:700;color:#6b4128;margin:14px 0 6px}
+.prompt{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:19px;line-height:1.7;margin:0;background:#fff;border:2px solid #dcc9b0;border-left:10px solid #d2ac86;border-radius:14px;padding:14px 16px}
+.alt .prompt{background:#f7efe1}
+.copy{display:block;width:100%;min-height:52px;margin:10px 0 0;background:#6b4128;color:#fff8ee;border:0;border-radius:14px;font:700 19px 'Noto Sans TC',sans-serif;cursor:pointer}
+.copy:active{transform:scale(.98)}
+.copy.done{background:#3f6b3a}
+.note{font-size:18px;color:#5a4535;margin:12px 0 0}
+ol.steps,ul.steps{font-size:19px;margin:6px 0 0;padding-left:1.4em}
+ol.steps li,ul.steps li{margin:6px 0}
+.cols{display:grid;gap:14px}
+.col{background:#ebdcc6;border-radius:16px;padding:14px 16px}
+.col .lab{margin-top:0}
+footer{margin-top:40px;font-size:16px;color:#735d4d;text-align:right}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">OathWoven</p>
+<h1>學員專屬提示詞小卡</h1>
+<p class="sub">把 AI 當夥伴，不是 Google。</p>
+<p class="hint">按「複製」，貼給 Claude 就能用。句子裡的「＿＿」是要換成你自己內容的地方。</p>
+
+<nav aria-label="快速跳到">
+<a href="#a">三個技巧</a>
+<a href="#b">做出小工具</a>
+<a href="#c">出錯怎麼辦</a>
+<a href="#d">想點子</a>
+<a href="#e">放上網址</a>
+</nav>
+
+<h2 class="sec" id="a">三個技巧</h2>
+
+<section class="card">
+<span class="pill">技巧 1</span>
+<h3>說清楚：給誰用、要做什麼</h3>
+<p class="lab">照這個句型填空</p>
+<pre class="prompt">我想做一個＿＿＿，給＿＿＿使用。</pre>
+<button class="copy">複製</button>
+<p class="lab">例子</p>
+<pre class="prompt">我想做一個「今天吃什麼」的小工具，給一般人使用，不需要懂電腦，只要會上網和點擊就能操作，連家裡的長輩都能輕鬆看懂。</pre>
+<button class="copy">複製</button>
+<p class="note">不用寫很長，這兩件事講清楚就夠了。</p>
+</section>
+
+<section class="card">
+<span class="pill">技巧 2</span>
+<h3>先複述給我聽，再問我問題</h3>
+<pre class="prompt">開始前，請先用三句話說明你理解的需求，再最多問我三個會影響結果的問題。我確認後，你再開始做。</pre>
+<button class="copy">複製</button>
+<p class="note">它複述錯了，你一句話就能糾正，比整個做完才發現方向不對，省下很多時間和額度。</p>
+</section>
+
+<section class="card">
+<span class="pill">技巧 3</span>
+<h3>全部說出來，但一次只改一個地方</h3>
+<pre class="prompt">目前我覺得有這些問題：
+1. ＿＿
+2. ＿＿
+3. ＿＿
+這一輪請保留所有功能，只修改第 1 點，其他部分請不要更動。我們一個一個來。</pre>
+<button class="copy">複製</button>
+<p class="note">先讓它知道全貌，這一輪只動一處，穩穩往前走。</p>
+</section>
+
+<h2 class="sec" id="b">一步一步做出「今天吃什麼」</h2>
+
+<section class="card">
+<span class="pill">小卡 1</span>
+<h3>先只列清單，不要急著做工具</h3>
+<pre class="prompt">我想做一個「今天吃什麼」的小工具，給一般人使用。使用者不需要懂電腦，只要會上網和點擊就能操作，介面要簡單直覺、字要大，連家裡的長輩都能輕鬆看懂。請先幫我列出 100 種台灣人常吃的餐點，分成「早餐、午晚餐、小吃、甜點、飲料」五類，每類 20 個左右。先只列清單，不要做工具，我確認後再進行下一步。</pre>
+<button class="copy">複製</button>
+<p class="note">項目當然可以更多，但東西越多越容易出錯。寧可先做簡單的，之後再以這個版本為基礎修改。</p>
+</section>
+
+<section class="card">
+<span class="pill">小卡 1 補充</span>
+<h3>清單不對，都可以跟 AI 溝通</h3>
+<pre class="prompt">請刪掉重複的項目，並補到每類剛好 20 個，其他保持不變。</pre>
+<button class="copy">複製</button>
+<p class="note">清單不夠、有重複，甚至項目不是你想要的，都可以直接說。這裡舉例的是「刪掉重複的項目」。</p>
+</section>
+
+<section class="card">
+<span class="pill">小卡 2</span>
+<h3>清單沒問題了，現在做成網頁（HTML 檔）</h3>
+<pre class="prompt">清單沒問題了，請用這份清單做成一個 HTML 檔（網頁檔），存起來就能直接用瀏覽器打開：
+- 畫面上有「什麼都可以」加五個分類按鈕，選一類後，按中間的大按鈕「幫我決定」
+- 只從選到的那一類隨機抽，「什麼都可以」就從全部抽，連續兩次不要抽到一樣的
+- 結果用大字顯示
+- 字體和按鈕都要大，手機與電腦都好按
+- 先做最簡單的版本，不要加我沒有要求的功能</pre>
+<button class="copy">複製</button>
+</section>
+
+<section class="card">
+<span class="pill">小卡 3</span>
+<h3>基本版沒問題了，但我還想加點什麼</h3>
+<pre class="prompt">基本版沒問題了，請保留目前的畫面和按鈕。只新增兩個功能：
+1. 可以自己輸入新的選項，加進目前選到的分類
+2. 每個選項旁邊有一個「刪掉」按鈕
+新增和刪除的選項要記住，重新整理頁面也不會消失。其他部分請不要更動。</pre>
+<button class="copy">複製</button>
+</section>
+
+<section class="card">
+<span class="pill">小卡 4</span>
+<h3>大致上都喜歡，但顏色跟編排不喜歡，該怎麼辦？</h3>
+<p class="lab">貼這句，把＿＿填上</p>
+<pre class="prompt">我原本要的是＿＿。
+目前問題是＿＿。
+請保留所有功能，只修改＿＿。
+完成後我會檢查按鈕是否仍然夠大、功能是否正常。</pre>
+<button class="copy">複製</button>
+<div class="col" style="margin-top:14px">
+<p class="lab">填空範例</p>
+<ul class="steps">
+<li><b>原本要的：</b>溫暖、讓人有食慾</li>
+<li><b>目前問題：</b>顏色太冷、整體太像工具</li>
+<li><b>只修改：</b>配色和標題文字，改成暖色系、標題用親切的口吻</li>
+</ul>
+</div>
+</section>
+
+<section class="card">
+<span class="pill">小卡 5</span>
+<h3>我不只想要抽卡，還想省下上網查詢的時間</h3>
+<pre class="prompt">請保留目前所有功能，只新增一個功能：
+1. 畫面上方加一個輸入框，提示文字是「你現在在哪裡？例如：鳳山站」
+2. 抽到結果後，下方出現「找附近的店」按鈕
+3. 按下去用 Google 地圖搜尋「抽到的餐點名稱 + 輸入框的地點」，在新分頁開啟
+4. 輸入框留空時，只搜尋餐點名稱加「附近」
+其他部分請不要更動。</pre>
+<button class="copy">複製</button>
+</section>
+
+<h2 class="sec" id="c">出錯怎麼辦</h2>
+
+<section class="card">
+<span class="pill">小卡 6</span>
+<h3>用三句話告訴它哪裡不對</h3>
+<p class="lab">貼這句，把＿＿填上</p>
+<pre class="prompt">我按了＿＿，我預期＿＿，但實際上＿＿。請只修這個問題，其他部分不要更動。</pre>
+<button class="copy">複製</button>
+<p class="lab">範例</p>
+<pre class="prompt">我按了「刪掉」按鈕，我預期那一項會消失，但實際上是別的項目消失了。請只修這個問題，其他部分不要更動。</pre>
+<button class="copy">複製</button>
+</section>
+
+<section class="card">
+<span class="pill">小卡 7</span>
+<h3>更新之後，之前有的東西不見了，該怎麼辦？</h3>
+<p class="lab">貼這句，把＿＿填上</p>
+<pre class="prompt">更新之後，原本有的＿＿不見了。請把它加回來，並保留目前所有其他功能，其他部分請不要更動。</pre>
+<button class="copy">複製</button>
+<p class="lab">範例</p>
+<pre class="prompt">更新之後，原本有的「找附近的店」按鈕不見了。請把它加回來，並保留目前所有其他功能，其他部分請不要更動。</pre>
+<button class="copy">複製</button>
+<p class="note">小提醒：每次滿意的版本先另存一份，真的壞了還能回到上一版。</p>
+</section>
+
+<h2 class="sec" id="d">做完以後，想點子</h2>
+
+<section class="card">
+<span class="pill">小卡 8</span>
+<h3>讓 Claude 當你的點子夥伴</h3>
+<pre class="prompt">請看一下目前這個工具，你覺得還可以加什麼有趣的功能？先給我三個點子，我選了你再做。</pre>
+<button class="copy">複製</button>
+<p class="note">你來選，它來做，方向盤永遠在你手上。</p>
+</section>
+
+<section class="card">
+<span class="pill">小卡 9</span>
+<h3>如果這三個點子都不喜歡，該怎麼辦？</h3>
+<pre class="prompt">這三個我都不太喜歡。我想要的方向是＿＿。請再給我三個不一樣的點子，我選了你再做。</pre>
+<button class="copy">複製</button>
+<p class="note">說不出方向也沒關係，只說「請換個完全不同的角度再想三個」也可以。</p>
+</section>
+
+<section class="card">
+<span class="pill">小卡 10</span>
+<h3>我有其他點子，回家想玩玩，該怎麼做？</h3>
+<p class="lab">先講想法，再接上這句</p>
+<pre class="prompt">幫我做一個好玩的 APP。
+開始前，請先用三句話說明你理解的需求，再最多問我三個會影響結果的問題。我確認後，你再開始做。</pre>
+<button class="copy">複製</button>
+<p class="note">想法再模糊也沒關係，讓它先問你，就能一起把方向問出來。</p>
+</section>
+
+<h2 class="sec" id="e">進階：放上網址，變成手機圖示</h2>
+
+<section class="card">
+<span class="pill">進階 總覽</span>
+<h3>從頭到尾：交給 Claude，或自己來</h3>
+<div class="cols">
+<div class="col">
+<p class="lab">交給 Claude</p>
+<ul class="steps">
+<li>做出網頁、改功能和外觀</li>
+<li>想儲存庫的名字</li>
+<li>看你的截圖，告訴你下一步</li>
+<li>解釋英文畫面和錯誤訊息</li>
+</ul>
+</div>
+<div class="col">
+<p class="lab">自己來</p>
+<ul class="steps">
+<li>申請 GitHub 帳號（要收驗證碼）</li>
+<li>下載檔案，改名 index.html</li>
+<li>建立儲存庫、上傳檔案</li>
+<li>開啟 Pages（網頁發布）</li>
+<li>手機加到主畫面</li>
+</ul>
+</div>
+</div>
+<p class="note">Claude 只能碰你授權的儲存庫，授權隨時可以取消。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 A</span>
+<h3>申請 GitHub 帳號</h3>
+<ol class="steps">
+<li>打開 github.com（GitHub 網站），按「Sign up（註冊）」</li>
+<li>電子郵件可以用 Gmail，照畫面設定密碼</li>
+<li>取一個「使用者名稱（Username）」，它會出現在你的網址裡，請取一個你願意公開的名字</li>
+<li>到信箱收驗證碼，輸入就完成了</li>
+</ol>
+<p class="note">網站是英文介面，照著按鈕的位置按就好。如果畫面上有「Continue with Google（用 Google 繼續）」，也可以直接點它用 Gmail 登入。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 B</span>
+<h3>把做好的網頁檔放上去</h3>
+<ol class="steps">
+<li>把做好的網頁檔下載下來，檔名改成你想要的英文單字；想簡單一點，打 index.html 就好（網頁首頁檔，照著打、全小寫）</li>
+<li>登入 GitHub，按右上角「＋」，選「New repository（新增儲存庫）」</li>
+<li>Repository name（儲存庫名稱）取個名字（例如 eat），選「Public（公開）」，按「Create repository（建立儲存庫）」</li>
+<li>按「uploading an existing file（上傳現有檔案）」，把 index.html 拖進去</li>
+<li>按下方綠色的「Commit changes（提交變更）」</li>
+</ol>
+<p class="note">「Public（公開）」表示拿到網址的人都看得到，不要放私人資料。用 index.html 網址最短；改成別的英文名字也可以，但網址後面要多打那個檔名（例如 .../eat.html）。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 C</span>
+<h3>打開 Pages，拿到你的網址</h3>
+<ol class="steps">
+<li>進到你的儲存庫（repository），按上方的「Settings（設定）」</li>
+<li>左邊選單選「Pages（網頁發布）」</li>
+<li>Branch（分支）選「main（主要分支）」，資料夾維持「/ (root)（根目錄）」，按「Save（儲存）」</li>
+<li>等 1 到 2 分鐘，重新整理頁面，上方會出現你的網址</li>
+</ol>
+<p class="note">網址長得像「你的名字.github.io/eat」，把這個連結存起來，傳給家人朋友也能用。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 D</span>
+<h3>加到主畫面，點一下就打開</h3>
+<div class="cols">
+<div class="col">
+<p class="lab">iPhone（Safari 瀏覽器）</p>
+<ol class="steps">
+<li>打開你的網址</li>
+<li>按下方的「分享」圖示</li>
+<li>選「加入主畫面」</li>
+<li>按「新增」</li>
+</ol>
+</div>
+<div class="col">
+<p class="lab">Android（Chrome 瀏覽器）</p>
+<ol class="steps">
+<li>打開你的網址</li>
+<li>按右上角的「⋮」</li>
+<li>選「加到主畫面」或「安裝應用程式」</li>
+<li>按「新增」或「安裝」</li>
+</ol>
+</div>
+</div>
+<p class="note">不同手機和瀏覽器的字樣可能有點不一樣，找長得像的選項就對了。</p>
+</section>
+
+<section class="card">
+<span class="pill">選修</span>
+<h3>自訂手機圖示</h3>
+<p class="note" style="margin-top:0">沒設定的話，手機會用網頁的截圖或文字當圖示。想換成自己的圖：</p>
+<ol class="steps">
+<li>準備一張正方形的 PNG 圖（做法看下面），檔名取 icon.png</li>
+<li>請 Claude 加上圖示設定（貼下面這句）</li>
+<li>把 icon.png 和 index.html 一起上傳</li>
+<li>手機上舊圖示先刪掉，再重新「加到主畫面」</li>
+</ol>
+<p class="lab">貼給 Claude 的話</p>
+<pre class="prompt">請幫我在這個網頁加上手機主畫面圖示的設定，圖示檔名是 icon.png（正方形 PNG 圖），其他部分請不要更動。完成後告訴我要把哪些檔案一起上傳。</pre>
+<button class="copy">複製</button>
+<p class="lab">沒有圖檔？自己做一張</p>
+<ul class="steps">
+<li>用 Canva（線上設計網站）或其他 AI 做一張</li>
+<li>正方形 PNG，建議做 1024×1024 像素，再請 Claude 縮成需要的尺寸</li>
+<li>不確定尺寸，直接問 Claude</li>
+<li>背景鋪滿、不要透明，重要的東西放中間，不要放太小的字</li>
+</ul>
+<p class="lab">貼給 Claude 的話（附上圖）</p>
+<pre class="prompt">請把這張圖縮成 512×512 像素的 PNG，檔名取 icon.png。</pre>
+<button class="copy">複製</button>
+<p class="note">如果 Claude 沒辦法輸出圖檔，也可以在 Canva 直接調整尺寸再下載。不同手機看到的圖示樣子可能略有不同。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 E</span>
+<h3>找到連接器，授權給 Claude</h3>
+<ol class="steps">
+<li>電腦版：聊天視窗左下按「＋」，滑鼠移到「Connectors（連接器）」，選「Manage connectors（管理連接器）」</li>
+<li>找到 GitHub，按「Connect（連接）」，登入並勾選要授權的儲存庫</li>
+<li>回到對話，直接說你想改哪個儲存庫、哪個檔案</li>
+</ol>
+<p class="lab">可以這樣說</p>
+<pre class="prompt">請看我 GitHub 上儲存庫＿＿裡的 index.html。請保留目前所有功能，只修改＿＿，其他部分請不要更動。</pre>
+<button class="copy">複製</button>
+<p class="note">手機版目前很難找到連接器，建議用電腦連。連好後，手機重新登入就會出現。</p>
+<p class="note">Claude 只能碰你授權的儲存庫，不想用時隨時可以取消授權。能做到什麼要看授權和工具；做不到時 Claude 會告訴你，到時就複製它改好的內容，自己貼回 GitHub。</p>
+</section>
+
+<section class="card">
+<span class="pill">進階 F</span>
+<h3>卡住了，把畫面截圖給 Claude</h3>
+<pre class="prompt">我附上目前畫面的截圖。我想要＿＿，請告訴我下一步要按哪裡。</pre>
+<button class="copy">複製</button>
+<p class="note">看不懂的英文，也可以直接問 Claude 這個按鈕是什麼意思。截圖前，先把密碼和驗證碼遮起來。</p>
+</section>
+
+<p class="sub" style="margin-top:32px;font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:24px">你說得越清楚，它就越懂你。</p>
+<footer>OathWoven｜學員專屬提示詞小卡</footer>
+</main>
+<script>
+(function(){
+  function fallbackCopy(text){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.position='fixed';ta.style.top='0';ta.style.left='0';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);return ok;
+  }
+  function flash(btn,ok){
+    var old=btn.getAttribute('data-label')||btn.textContent;
+    btn.setAttribute('data-label',old);
+    btn.textContent=ok?'已複製 ✓':'請長按文字手動複製';
+    if(ok)btn.classList.add('done');
+    setTimeout(function(){btn.textContent=old;btn.classList.remove('done');},1800);
+  }
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var box=btn.previousElementSibling;
+      while(box&&!box.classList.contains('prompt'))box=box.previousElementSibling;
+      if(!box)return;
+      var text=box.textContent;
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){flash(btn,true);},function(){flash(btn,fallbackCopy(text));});
+      }else{flash(btn,fallbackCopy(text));}
+    });
+  });
+})();
+</script>
+</body>
+</html>

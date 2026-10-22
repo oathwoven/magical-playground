@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>今天吃什麼</title>
+<style>
+:root{--bg:#f3e9da;--ink:#3a2a20;--brown:#6b4128;--sand:#d2ac86;--card:#fbf6ee;--line:#dcc9b0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:20px;line-height:1.5}
+main{max-width:760px;margin:0 auto;padding:28px 18px 60px}
+h1{font-size:42px;margin:0 0 6px;color:var(--brown)}
+.sub{color:#5a4535;margin:0 0 22px;font-size:20px}
+.cats{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.cat{font:inherit;font-size:22px;padding:14px 22px;border-radius:999px;border:3px solid var(--sand);background:var(--card);color:var(--ink);cursor:pointer;min-height:56px}
+.cat.on{background:var(--brown);color:#fff8ee;border-color:var(--brown)}
+.go{display:block;width:100%;font:inherit;font-size:36px;font-weight:700;padding:26px;border-radius:24px;border:0;background:var(--brown);color:#fff8ee;cursor:pointer;min-height:88px}
+.go:active{transform:scale(.99)}
+.result{min-height:160px;margin:24px 0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:64px;font-weight:700;color:var(--brown);background:var(--card);border:3px solid var(--line);border-radius:24px;padding:18px;word-break:break-all}
+.result.empty{font-size:26px;font-weight:500;color:#8a7461}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:24px;padding:22px;margin-top:10px}
+.panel h2{font-size:26px;margin:0 0 12px;color:var(--brown)}
+.addrow{display:flex;gap:10px}
+.addrow input{flex:1;min-width:0;font:inherit;font-size:22px;padding:14px;border-radius:14px;border:3px solid var(--line);background:#fff;color:var(--ink)}
+.addrow button{font:inherit;font-size:22px;padding:14px 22px;border-radius:14px;border:0;background:var(--sand);color:#2f2016;font-weight:700;cursor:pointer;min-height:56px}
+.addrow button:disabled,.addrow input:disabled{opacity:.5;cursor:not-allowed}
+.hint{color:#5a4535;font-size:18px;margin:10px 0 0}
+ul.list{list-style:none;padding:0;margin:16px 0 0}
+ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:2px solid var(--line);font-size:26px}
+ul.list button{font:inherit;font-size:20px;padding:8px 18px;border-radius:12px;border:2px solid var(--brown);background:transparent;color:var(--brown);cursor:pointer;min-height:48px}
+.reset{margin-top:26px;font:inherit;font-size:16px;background:none;border:0;color:#8a7461;text-decoration:underline;cursor:pointer}
+</style>
+</head>
+<body>
+<main>
+  <h1>今天吃什麼？</h1>
+  <p class="sub">選一類，按大按鈕，讓我幫你決定。</p>
+
+  <div class="cats" id="cats"></div>
+
+  <button class="go" id="go">幫我決定</button>
+  <div class="result empty" id="result">按一下「幫我決定」</div>
+
+  <section class="panel">
+    <h2 id="panelTitle">我的選項</h2>
+    <div class="addrow">
+      <input id="newItem" type="text" placeholder="輸入想加的餐點" maxlength="20">
+      <button id="addBtn">新增</button>
+    </div>
+    <p class="hint" id="hint"></p>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <button class="reset" id="reset">恢復成預設清單</button>
+</main>
+
+<script>
+var DEFAULTS = {
+  "早餐": ["蛋餅","飯糰","燒餅油條","三明治","蘿蔔糕","鐵板麵","豆漿配饅頭","漢堡蛋"],
+  "午晚餐": ["滷肉飯","牛肉麵","排骨便當","咖哩飯","水餃","炒飯","雞肉飯","陽春麵"],
+  "小吃": ["雞排","臭豆腐","蚵仔煎","鹹酥雞","滷味","大腸包小腸","肉圓","燒仙草"],
+  "甜點": ["豆花","芒果冰","鳳梨酥","紅豆湯圓","雞蛋糕","車輪餅","布丁","愛玉"],
+  "飲料": ["珍珠奶茶","冬瓜茶","青草茶","四季春","豆漿","木瓜牛奶","楊桃汁","檸檬紅茶"]
+};
+var KEY = "eat-debug-demo-v1";
+var ALL = "什麼都可以";
+var current = ALL;
+var last = "";
+var data = load();
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function load(){
+  try { var s = localStorage.getItem(KEY); if (s) return JSON.parse(s); } catch(e) {}
+  return clone(DEFAULTS);
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+var catsEl = document.getElementById("cats");
+var resultEl = document.getElementById("result");
+var listEl = document.getElementById("list");
+var inputEl = document.getElementById("newItem");
+var addBtn = document.getElementById("addBtn");
+var hintEl = document.getElementById("hint");
+var titleEl = document.getElementById("panelTitle");
+
+function renderCats(){
+  catsEl.innerHTML = "";
+  [ALL].concat(Object.keys(data)).forEach(function(name){
+    var b = document.createElement("button");
+    b.className = "cat" + (name === current ? " on" : "");
+    b.textContent = name;
+    b.onclick = function(){ current = name; last = ""; renderCats(); renderPanel(); };
+    catsEl.appendChild(b);
+  });
+}
+
+function pool(){
+  if (current === ALL) {
+    return Object.keys(data).reduce(function(all, k){ return all.concat(data[k]); }, []);
+  }
+  return data[current];
+}
+
+function show(text, empty){
+  resultEl.textContent = text;
+  resultEl.className = "result" + (empty ? " empty" : "");
+}
+
+function decide(){
+  var p = pool();
+  if (!p.length) { show("這一類沒有選項了，先新增幾個吧", true); return; }
+  var pick;
+  if (p.length === 1) { pick = p[0]; }
+  else { do { pick = p[Math.floor(Math.random() * p.length)]; } while (pick === last); }
+  last = pick;
+  show(pick);
+}
+
+function renderPanel(){
+  listEl.innerHTML = "";
+  if (current === ALL) {
+    titleEl.textContent = "我的選項";
+    inputEl.disabled = true; addBtn.disabled = true;
+    hintEl.textContent = "請先選一個分類，才能新增或刪掉選項。";
+    return;
+  }
+  titleEl.textContent = current + "的選項";
+  inputEl.disabled = false; addBtn.disabled = false;
+  hintEl.textContent = "新加的會排在最上面。";
+  var items = data[current];
+  items.slice().reverse().forEach(function(name, i){
+    var li = document.createElement("li");
+    var span = document.createElement("span");
+    span.textContent = name;
+    var del = document.createElement("button");
+    del.textContent = "刪掉";
+    del.onclick = function(){ removeItem(i); };
+    li.appendChild(span); li.appendChild(del);
+    listEl.appendChild(li);
+  });
+}
+
+function addItem(){
+  var v = inputEl.value.trim();
+  if (!v || current === ALL) return;
+  if (data[current].indexOf(v) !== -1) { hintEl.textContent = "「" + v + "」已經有了。"; return; }
+  data[current].push(v);
+  save();
+  inputEl.value = "";
+  renderPanel();
+}
+
+function removeItem(i){
+  data[current].splice(i, 1);
+  save();
+  renderPanel();
+}
+
+document.getElementById("go").onclick = decide;
+addBtn.onclick = addItem;
+inputEl.addEventListener("keydown", function(e){ if (e.key === "Enter") addItem(); });
+document.getElementById("reset").onclick = function(){
+  data = clone(DEFAULTS); save(); last = ""; show("按一下「幫我決定」", true); renderCats(); renderPanel();
+};
+
+renderCats();
+renderPanel();
+</script>
+</body>
+</html>

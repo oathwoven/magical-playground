@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>我的角色舞台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#f3e9da;--ink:#3a2a20;--card:#fbf6ee;--line:#dcc9b0;--brown:#6b4128;--sand:#d2ac86;--soft:#ebdcc6}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;font-size:18px;line-height:1.6}
+main{max-width:780px;margin:0 auto;padding:24px 16px 60px}
+h1{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-weight:800;font-size:34px;line-height:1.2;margin:0 0 4px}
+.sub{color:#5a4535;margin:0 0 16px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:16px;margin:0 0 16px}
+.tip{background:#f1dfc4;border-radius:12px;padding:8px 12px;margin:12px 0 0;font-weight:500;font-size:17px}
+.lab{font-size:16px;font-weight:700;color:var(--brown);margin:0 0 6px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.grow{flex:1 1 200px}
+input[type=file]{width:100%;font:inherit;font-size:15px;padding:8px;background:#fff;border:2px dashed var(--sand);border-radius:12px}
+input[type=text],input[type=number],select,textarea{width:100%;font:inherit;font-size:17px;padding:8px 10px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+textarea{min-height:96px;resize:vertical}
+input[type=color]{width:52px;height:40px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:2px}
+.note{font-size:15px;color:#735d4d;margin:8px 0 0}
+details>summary{cursor:pointer;font-weight:700;color:var(--brown);font-size:18px}
+.ok{color:#2f6b34}.warn{color:#a2461f}
+
+/* ---- stage ---- */
+#stage{position:relative;width:100%;aspect-ratio:4/3;max-height:78vh;border-radius:24px;border:3px solid var(--line);overflow:hidden;background:#fff;touch-action:manipulation;transition:filter .6s,box-shadow .6s;user-select:none;-webkit-user-select:none}
+#stage.night{filter:brightness(.55) saturate(.8)}
+#stage.focus{box-shadow:inset 0 0 90px rgba(90,50,20,.28)}
+#hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;color:#735d4d;font-size:20px;z-index:1}
+#name{position:absolute;left:14px;top:10px;font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-weight:800;font-size:22px;color:rgba(58,42,32,.75);z-index:6;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+#stateTag{position:absolute;left:12px;bottom:10px;z-index:6;background:rgba(255,255,255,.75);border-radius:10px;padding:1px 10px;font-size:13px;color:#5a4535}
+#pet{position:absolute;left:0;bottom:8px;width:160px;will-change:transform;z-index:3;transform-origin:50% 100%}
+#pet::after{content:'';position:absolute;left:14%;right:14%;bottom:-7px;height:14px;background:rgba(0,0,0,.2);border-radius:50%;filter:blur(3px);z-index:-1}
+#inner{transform-origin:50% 100%}
+#petImg{display:block;width:100%;height:auto;cursor:pointer;-webkit-user-drag:none;user-select:none}
+.pixel #petImg{image-rendering:pixelated}
+#petImg.stk{border-radius:22px;border:4px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.28)}
+#bubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:4px;background:#fff;border:2px solid var(--brown);border-radius:16px;padding:6px 12px;font-size:16px;font-weight:500;white-space:nowrap;z-index:4}
+#fx,#items{position:absolute;inset:0;pointer-events:none}
+#fx{z-index:7}#items{z-index:2}
+.item{position:absolute;font-size:32px;line-height:1;animation:drop .5s ease-in both}
+.item.pop{animation:popout .45s ease-out forwards}
+.item.bounce{animation:itembounce .5s ease-in-out infinite}
+@keyframes drop{0%{transform:translateY(-150px);opacity:0}100%{transform:translateY(0);opacity:1}}
+@keyframes popout{0%{transform:scale(1)}100%{transform:scale(0);opacity:0}}
+@keyframes itembounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.fx{position:absolute;font-size:26px;animation:floatup 1.4s ease-out forwards}
+@keyframes floatup{0%{opacity:1;transform:translateY(0) scale(.8)}100%{opacity:0;transform:translateY(-90px) scale(1.2)}}
+.hop{animation:hop .45s ease-out 1}
+.hop3{animation:hop .45s ease-out 3}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1,1)}30%{transform:translateY(-34px) scale(.95,1.06)}60%{transform:translateY(0) scale(1.06,.94)}}
+#hud{position:absolute;right:12px;top:10px;z-index:8;background:rgba(255,255,255,.85);border:2px solid var(--brown);border-radius:14px;padding:4px 12px;font-weight:700;font-size:17px}
+#overlay{position:absolute;inset:0;z-index:9;background:rgba(40,25,15,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff8ee;text-align:center;padding:16px}
+#overlay b{font-size:30px;font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif}
+.falling{position:absolute;font-size:34px;line-height:1;z-index:5;pointer-events:none}
+
+/* ---- controls ---- */
+.tabs{display:flex;gap:8px;overflow-x:auto;margin:14px 0 10px;padding-bottom:4px}
+.tab{flex:none;font:700 16px 'Noto Sans TC',sans-serif;min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:999px;background:var(--soft);color:var(--ink);cursor:pointer}
+.tab.on{background:var(--brown);color:#fff8ee;border-color:var(--brown)}
+.btns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 0}
+.btn{font:700 18px 'Noto Sans TC',sans-serif;min-height:52px;border:0;border-radius:14px;background:var(--brown);color:#fff8ee;cursor:pointer;padding:0 10px}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.alt{background:var(--soft);color:var(--ink);border:2px solid var(--line)}
+.btn.danger{background:#a2461f}
+.picks{display:flex;gap:8px;flex-wrap:wrap}
+.pick{font-size:28px;line-height:1;width:52px;height:52px;border-radius:14px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.pick.on{border-color:var(--brown);background:#f1dfc4;box-shadow:0 0 0 2px var(--brown) inset}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.meter{background:var(--soft);border-radius:999px;height:18px;overflow:hidden}
+.meter>i{display:block;height:100%;width:50%;background:var(--sand);transition:width .4s}
+.big{font:800 44px 'Chiron GoRound TC','Noto Sans TC',sans-serif;text-align:center;margin:6px 0}
+.cups{font-size:30px;letter-spacing:2px;min-height:44px}
+footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
+#msg{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:50;max-width:min(92vw,520px);background:#3a2a20;color:#fff8ee;border-radius:14px;padding:10px 16px;font-size:16px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#confirm{position:fixed;inset:0;z-index:60;background:rgba(40,25,15,.6);display:flex;align-items:center;justify-content:center;padding:16px}
+#confirm .box{background:var(--card);border-radius:20px;padding:20px;max-width:420px;width:100%}
+#confirm p{margin:0 0 16px;font-size:18px}
+#confirm .acts{display:flex;gap:10px}
+#confirm .acts .btn{flex:1}
+</style>
+</head>
+<body>
+<main>
+<h1>我的角色舞台</h1>
+<p class="sub">把你做好的 GIF 放進來，牠就會住在這裡陪你。點舞台任何地方，牠會走過去。</p>
+
+<section class="card">
+<details open id="dLoad">
+<summary>① 放進你的角色（選好後會自動收起，點標題可以再打開）</summary>
+<p class="tip">只需一張「待機」圖片或 GIF 就能開始；其他動作可以之後慢慢補齊。</p>
+<div class="row" style="margin-top:12px">
+<div class="grow"><p class="lab">一次選全部（可多選）</p><input type="file" id="fAll" accept="image/*" multiple>
+<p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。</p></div>
+</div>
+<details style="margin-top:10px"><summary style="font-size:16px">或一個一個選（七種狀態）</summary><div id="slots" class="row" style="margin-top:10px"></div></details>
+<div id="loaded" class="note"></div>
+<div class="row" style="margin-top:12px">
+<div class="grow"><p class="lab">名字</p><input type="text" id="nameIn" value="小龍" maxlength="12"></div>
+<div style="min-width:150px"><p class="lab">大小</p><input type="range" id="size" min="90" max="260" value="150" style="width:100%"></div>
+</div>
+<p class="note">檔案只在你自己的瀏覽器裡顯示，不會上傳到任何地方。</p>
+</details>
+</section>
+
+<section class="card">
+<details open id="dScene">
+<summary>② 場景</summary>
+<div class="row" style="margin-top:12px">
+<div class="grow"><p class="lab">場景</p>
+<select id="scene">
+<option value="solid">純色（可手動選色）</option>
+<option value="room" selected>小房間</option>
+<option value="meadow">俯視草原</option>
+<option value="grass">草地</option>
+<option value="night">夜空</option>
+<option value="pastel">粉彩</option>
+<option value="custom">我的背景圖</option>
+</select></div>
+<div class="grow"><p class="lab">自己的背景圖</p><input type="file" id="fBg" accept="image/*">
+<p class="note">建議橫式 4:3，例如 1600×1200。畫面會自動填滿並裁掉多的部分，重要的東西放中間。不要有文字和角色，檔案 2MB 以下比較順。</p></div>
+<div class="grow"><p class="lab">視角</p><select id="view"><option value="side">側面（站在地上）</option><option value="top">俯視（滿場跑）</option></select></div>
+</div>
+<div class="row" style="margin-top:12px">
+<div id="solidWrap" hidden><p class="lab">底色</p><input type="color" id="bgPick" value="#ffffff"></div>
+<div class="grow"><p class="lab">角色外框</p><select id="stickerMode">
+<option value="auto">自動（有底色的圖加貼紙框）</option>
+<option value="on">一律加貼紙框</option>
+<option value="off">不加框</option></select></div>
+</div>
+<label style="display:block;margin-top:12px;font-size:16px"><input type="checkbox" id="pix"> 像素風：放大時邊緣保持銳利</label>
+<p class="note">想讓角色真正融進場景，需要透明背景的圖。有底色的 GIF 可以選「純色」場景並手動選同色，或用貼紙框。</p>
+</details>
+</section>
+
+<section class="card">
+<details id="dSave">
+<summary>③ 保存與備份</summary>
+<p class="note" style="margin-top:10px">你的角色、背景和設定會存在<b>這個瀏覽器</b>裡，下次打開還在。但不會自動同步到其他裝置，清除瀏覽器資料也可能讓作品消失，所以建議不定時下載備份。</p>
+<p class="note" id="saveStatus">檢查保存功能中…</p>
+<div class="btns" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+<button class="btn alt" id="bExport">⬇️ 匯出備份</button>
+<label class="btn alt" style="display:flex;align-items:center;justify-content:center;cursor:pointer">⬆️ 匯入備份<input type="file" id="fImport" accept=".json,application/json" hidden></label>
+<button class="btn danger" id="bWipe">🗑️ 清除全部資料</button>
+</div>
+</details>
+</section>
+
+<div id="stage">
+<div id="hint">先在上面放一張「待機」圖片或 GIF</div>
+<div id="name"></div>
+<div id="stateTag"></div>
+<div id="items"></div>
+<div id="pet" hidden>
+<div id="bubble" hidden></div>
+<div id="inner"><img id="petImg" alt="我的角色"></div>
+</div>
+<div id="fx"></div>
+<div id="hud" hidden></div>
+<div id="overlay" hidden></div>
+</div>
+
+<div class="meters">
+<div><p class="lab" style="margin:0 0 4px">心情</p><div class="meter"><i id="mMood"></i></div></div>
+<div><p class="lab" style="margin:0 0 4px">肚子</p><div class="meter"><i id="mFull"></i></div></div>
+</div>
+
+<div class="tabs" role="tablist" id="tabs">
+<button class="tab on" data-m="care">🏠 陪伴</button>
+<button class="tab" data-m="play">🎾 玩耍</button>
+<button class="tab" data-m="catch">🧺 接食物</button>
+<button class="tab" data-m="focus">⏳ 專注</button>
+<button class="tab" data-m="water">💧 喝水</button>
+</div>
+
+<section class="card panel" data-p="care">
+<p class="lab">選一個食物</p>
+<div class="picks" id="foodPicks"></div>
+<div class="row" style="margin-top:10px"><div class="grow"><p class="lab">或自己輸入一個表情符號</p><input type="text" id="foodIn" placeholder="例如 🍤" maxlength="4"></div></div>
+<div class="btns">
+<button class="btn needpet" id="bFeed" disabled>🍽️ 餵食</button>
+<button class="btn needpet" id="bPet" disabled>🤚 摸摸</button>
+<button class="btn needpet" id="bRest" disabled>🌙 休息</button>
+</div>
+<p class="note">點舞台任何地方，牠會走過去。點牠本人，牠會說話。連續餵食時，新的食物會取代還沒吃的那個。</p>
+</section>
+
+<section class="card panel" data-p="play" hidden>
+<p class="lab">選一個玩具</p>
+<div class="picks" id="toyPicks"></div>
+<div class="btns" style="grid-template-columns:1fr 1fr">
+<button class="btn needpet" id="bThrow" disabled>丟一個</button>
+<button class="btn alt" id="bClear">收起玩具</button>
+</div>
+<p class="note">在這個頁籤，點舞台任何地方就是把玩具丟到那裡，牠會跑去玩。已經玩了 <b id="playN">0</b> 次。</p>
+</section>
+
+<section class="card panel" data-p="catch" hidden>
+<p class="lab">接食物小遊戲</p>
+<p class="note" style="margin:0 0 10px">滑鼠或手指左右移動，牠就跟著走（也可以用鍵盤左右鍵）。食物 +1，你選的最愛食物 +3，🌶️ 要躲開，碰到 −1。切到別的分頁時遊戲會暫停。</p>
+<div class="btns" style="grid-template-columns:1fr"><button class="btn needpet" id="bCatch" disabled>開始（30 秒）</button></div>
+<p class="note">最高分：<b id="bestN">0</b></p>
+</section>
+
+<section class="card panel" data-p="focus" hidden>
+<p class="lab">專注陪伴：這段時間，牠陪你不玩手機</p>
+<div class="row"><div class="grow"><p class="lab">幾分鐘</p><input type="number" id="focusMin" value="10" min="1" max="180" step="any"></div>
+<button class="btn alt" data-q="5">5</button><button class="btn alt" data-q="10">10</button><button class="btn alt" data-q="25">25</button></div>
+<div class="big" id="focusTime">10:00</div>
+<div class="btns" style="grid-template-columns:1fr 1fr"><button class="btn needpet" id="bFocus" disabled>開始專注</button><button class="btn alt" id="bFocusStop">停止</button></div>
+<p class="note">這是計時陪伴：不會鎖住手機，也不會擋住其他 App。關掉這個頁面後，不會再提醒你。</p>
+</section>
+
+<section class="card panel" data-p="water" hidden>
+<p class="lab">今天的喝水紀錄</p>
+<div class="row"><div class="grow"><p class="lab">自己設定的目標（杯）</p><select id="goal"><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></div></div>
+<div class="cups" id="cups"></div>
+<div class="btns" style="grid-template-columns:2fr 1fr"><button class="btn needpet" id="bWater" disabled>💧 喝了一杯</button><button class="btn alt" id="bWaterReset">歸零</button></div>
+<p class="note">這只是生活紀錄小工具，目標杯數請依自己的狀況設定，不是健康建議。記錄存在這個瀏覽器，隔天自動重新算。</p>
+</section>
+
+<section class="card">
+<details>
+<summary>牠會說的話（一行一句，可以自己改）</summary>
+<textarea id="lines" style="margin-top:10px">嗨！今天也一起加油！
+我在這裡陪你～
+再摸一下嘛！
+肚子有點餓了…
+要不要休息一下？</textarea>
+</details>
+</section>
+
+<footer>OathWoven｜角色舞台</footer>
+</main>
+
+<div id="msg" hidden></div>
+<div id="confirm" hidden><div class="box"><p id="confirmText"></p><div class="acts"><button class="btn alt" id="confirmNo">取消</button><button class="btn danger" id="confirmOk">確定</button></div></div></div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const stage=$('stage'),pet=$('pet'),inner=$('inner'),img=$('petImg'),bubble=$('bubble'),fx=$('fx'),items=$('items'),hint=$('hint'),hud=$('hud'),overlay=$('overlay');
+const FAST=/fast/.test(location.hash);
+const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:40000, DECAY_MS=FAST?600:6000;
+const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
+const ZH={};STATES.forEach(s=>ZH[s[0]]=s[1]);
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const W=()=>stage.clientWidth, PW=()=>pet.offsetWidth||150;
+let viewTop=false;
+const YMAX=()=>viewTop?Math.max(60,stage.clientHeight-PW()*0.9-24):Math.min(120,stage.clientHeight*0.3);
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}};
+const lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const lsKeys=()=>{const a=[];try{for(let i=0;i<localStorage.length;i++)a.push(localStorage.key(i))}catch(e){}return a};
+function pad2(n){return ('0'+n).slice(-2)}
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
+
+/* ================= toast / confirm ================= */
+let msgT=null;
+function toast(t,ms){const m=$('msg');m.textContent=t;m.hidden=false;clearTimeout(msgT);msgT=setTimeout(()=>{m.hidden=true},ms||3500)}
+function ask(text,okLabel){
+  return new Promise(res=>{
+    const box=$('confirm');$('confirmText').textContent=text;$('confirmOk').textContent=okLabel||'確定';box.hidden=false;
+    const done=v=>{box.hidden=true;$('confirmOk').onclick=null;$('confirmNo').onclick=null;res(v)};
+    $('confirmOk').onclick=()=>done(true);$('confirmNo').onclick=()=>done(false);
+  });
+}
+
+/* ================= state ================= */
+const urls={},meta={},store={};   // urls: objectURL; meta: {name,transparent,color}; store: {buf,type,name} for backup+IDB
+let bgURL=null,started=false,restoring=true,bgManual=false,stateName='';
+let lastInteract=performance.now(),eatUntil=0,happyUntil=0,nextSay=0,busyUntil=0,last=0;
+let resting=false,catching=false,focusing=false,mode='care',keys={};
+let mood=60,full=60,bubbleT=null,zT=null,wakeT=null,playN=0;
+let food='🍙',toy='🎾';
+const P={x:20,y:0,tx:null,ty:null,cb:null,fast:false,wander:false,dir:1,idle:1.5,phase:0,moving:false};
+let pend=null;   // 目前等待牠走過去處理的食物／玩具
+
+/* ================= meters ================= */
+function meters(){$('mMood').style.width=mood+'%';$('mFull').style.width=full+'%'}
+function addMood(d){mood=clamp(mood+d,0,100);meters()}
+function addFull(d){full=clamp(full+d,0,100);meters()}
+meters();
+setInterval(()=>{ if(!started||document.hidden)return; addMood(-1);addFull(-2) },DECAY_MS);
+
+/* ================= IndexedDB ================= */
+let db=null;
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(!('indexedDB' in window)){rej(new Error('這個瀏覽器沒有 IndexedDB'));return}
+    let r;try{r=indexedDB.open('oathwoven_stage_v1',1)}catch(e){rej(e);return}
+    r.onupgradeneeded=()=>{r.result.createObjectStore('assets')};
+    r.onsuccess=()=>res(r.result);
+    r.onerror=()=>rej(r.error||new Error('開啟失敗'));
+    r.onblocked=()=>rej(new Error('資料庫被其他分頁占用'));
+  });
+}
+const reqP=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const txDone=tx=>new Promise((res,rej)=>{tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);tx.onabort=()=>rej(tx.error||new Error('交易中止'))});
+async function idbPut(k,v){if(!db)throw new Error('保存功能未啟用');const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put(v,k);await txDone(tx)}
+async function idbDel(k){if(!db)return;const tx=db.transaction('assets','readwrite');tx.objectStore('assets').delete(k);await txDone(tx)}
+async function idbClear(){if(!db)return;const tx=db.transaction('assets','readwrite');tx.objectStore('assets').clear();await txDone(tx)}
+async function idbAll(){
+  if(!db)return {};
+  const tx=db.transaction('assets','readonly'),st=tx.objectStore('assets');
+  const [keys,vals]=await Promise.all([reqP(st.getAllKeys()),reqP(st.getAll())]);
+  const out={};keys.forEach((k,i)=>out[k]=vals[i]);return out;
+}
+function saveStatus(text,cls){const s=$('saveStatus');s.textContent=text;s.className='note '+(cls||'')}
+async function persist(key,rec){
+  store[key]=rec;
+  if(!db){return}
+  try{await idbPut(key,rec)}
+  catch(e){saveStatus('⚠ 這張圖沒能保存：'+(e&&e.message||e)+'。重新整理後可能要重選，建議先匯出備份。','warn');toast('保存失敗，建議先「匯出備份」。')}
+}
+
+/* ================= settings ================= */
+function collect(){
+  return {name:$('nameIn').value,size:$('size').value,scene:$('scene').value,view:$('view').value,bg:$('bgPick').value,bgManual:bgManual,
+    stickerMode:$('stickerMode').value,pix:$('pix').checked,lines:$('lines').value,goal:$('goal').value,food:food,toy:toy,foodIn:$('foodIn').value};
+}
+let saveT=null;
+function saveSettings(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{if(!lsSet('stage_settings',JSON.stringify(collect())))saveStatus('⚠ 設定沒能保存（瀏覽器不允許）。請用匯出備份留一份。','warn')},250)}
+function applySettings(o){
+  if(!o)return;
+  if(o.name!=null)$('nameIn').value=o.name;
+  if(o.size)$('size').value=o.size;
+  if(o.scene&&[...$('scene').options].some(x=>x.value===o.scene))$('scene').value=o.scene;
+  if(o.view)$('view').value=o.view;
+  if(o.bg)$('bgPick').value=o.bg;
+  bgManual=!!o.bgManual;
+  if(o.stickerMode)$('stickerMode').value=o.stickerMode;
+  $('pix').checked=!!o.pix;document.body.classList.toggle('pixel',!!o.pix);
+  if(o.lines)$('lines').value=o.lines;
+  if(o.goal)$('goal').value=o.goal;
+  if(o.food)food=o.food;
+  if(o.toy)toy=o.toy;
+  if(o.foodIn!=null)$('foodIn').value=o.foodIn;
+  viewTop=($('view').value==='top');
+  pet.style.width=$('size').value+'px';$('name').textContent=$('nameIn').value;
+}
+
+/* ================= images ================= */
+const toHex=(r,g,b)=>'#'+[r,g,b].map(v=>('0'+v.toString(16)).slice(-2)).join('');
+function decode(url){return new Promise(res=>{const t=new Image();t.onload=()=>res(t);t.onerror=()=>res(null);t.src=url})}
+function sample(t){
+  try{
+    const c=document.createElement('canvas');c.width=t.naturalWidth;c.height=t.naturalHeight;
+    const g=c.getContext('2d');g.drawImage(t,0,0);
+    const a=g.getImageData(2,2,1,1).data,b=g.getImageData(Math.max(0,c.width-3),2,1,1).data;
+    return {transparent:(a[3]<10&&b[3]<10),color:toHex(a[0],a[1],a[2])};
+  }catch(e){return {transparent:false,color:null}}
+}
+function stickerOn(state){
+  const m=$('stickerMode').value;
+  if(m==='on')return true;if(m==='off')return false;
+  const mt=meta[state]||meta.idle;if(!mt)return false;
+  return !mt.transparent&&$('scene').value!=='solid';
+}
+function refreshSticker(){img.classList.toggle('stk',stickerOn(stateName||'idle'))}
+
+function renderLoaded(extra){
+  const got=STATES.filter(s=>urls[s[0]]).map(s=>s[1]+'←'+(meta[s[0]].name||''));
+  const miss=STATES.filter(s=>!urls[s[0]]&&s[0]!=='idle').map(s=>s[1]);
+  let t=got.length?'已載入：'+got.join('、'):'還沒有載入任何狀態';
+  if(urls.idle&&miss.length)t+='　｜　還沒有「'+miss.join('、')+'」，會先用待機代替';
+  if(extra)t+='　｜　'+extra;
+  $('loaded').textContent=t;
+  document.querySelectorAll('#slots .slotname').forEach(el=>{el.textContent=(meta[el.dataset.s]&&meta[el.dataset.s].name)||''});
+}
+async function setAsset(state,blob,name){
+  const url=URL.createObjectURL(blob);
+  const t=await decode(url);
+  if(!t){URL.revokeObjectURL(url);toast('無法顯示這個檔案：'+name+'（可能不是圖片，或檔案壞了），已略過。',4500);return false}
+  if(urls[state])URL.revokeObjectURL(urls[state]);
+  urls[state]=url;meta[state]=Object.assign({name:name},sample(t));
+  renderLoaded();
+  if(state==='idle'){
+    if(meta.idle.color&&!meta.idle.transparent&&!bgManual)$('bgPick').value=meta.idle.color;
+    show();
+  }
+  applyScene();
+  if(started)applyState(true);
+  return true;
+}
+async function addFile(state,file){
+  const ok=await setAsset(state,file,file.name);
+  if(ok){
+    const buf=await file.arrayBuffer();
+    await persist(state,{buf:buf,type:file.type||'image/gif',name:file.name});
+  }
+  return ok;
+}
+async function setBg(blob,name){
+  const url=URL.createObjectURL(blob);
+  const t=await decode(url);
+  if(!t){URL.revokeObjectURL(url);toast('背景圖無法顯示：'+name+'，已略過。',4500);return false}
+  if(bgURL)URL.revokeObjectURL(bgURL);
+  bgURL=url;return true;
+}
+
+/* 檔名配對：英文要整個單字，中文要完整詞；單字只有在整個檔名剛好等於它時才算 */
+const KEY={idle:{en:['idle'],zh:['待機','待命']},walk:{en:['walk'],zh:['走路','走動']},eat:{en:['eat'],zh:['吃東西','吃飯','進食']},
+  happy:{en:['happy'],zh:['開心','高興']},sleep:{en:['sleep'],zh:['睡覺','睡眠']},hungry:{en:['hungry'],zh:['肚子餓','餓了','飢餓']},miss:{en:['miss','missing'],zh:['想念','思念']}};
+const SINGLE={walk:'走',eat:'吃',sleep:'睡',hungry:'餓',miss:'想'};
+function matchStates(fname){
+  const base=fname.replace(/\.[^.]+$/,''),low=base.toLowerCase(),found=[];
+  STATES.forEach(s=>{
+    const k=s[0],K=KEY[k];let hit=false;
+    K.en.forEach(w=>{if(new RegExp('(^|[^a-z])'+w+'([^a-z]|$)').test(low))hit=true});
+    K.zh.forEach(w=>{if(base.indexOf(w)>-1)hit=true});
+    if(SINGLE[k]&&base===SINGLE[k])hit=true;
+    if(hit)found.push(k);
+  });
+  return found;
+}
+async function adoptIdle(f,taken,notes){
+  const ok=await addFile('idle',f);
+  if(ok){taken.idle=f.name;taken['_adopted:'+f.name]=1;notes.push('「'+f.name+'」檔名沒有狀態，先當作「待機」使用')}
+  return ok;
+}
+$('fAll').addEventListener('change',async e=>{
+  const files=Array.from(e.target.files),notes=[],taken={};
+  for(const f of files){
+    const m=matchStates(f.name);
+    if(m.length===0){
+      if(!urls.idle&&!taken.idle&&!(await adoptIdle(f,taken,notes))){}
+      else if(urls.idle||taken.idle){ if(!taken['_adopted:'+f.name])notes.push('「'+f.name+'」看不出是哪個狀態，沒有使用（可改檔名，或用下方一個一個選）') }
+      continue;
+    }
+    if(m.length>1){notes.push('「'+f.name+'」可能是'+m.map(x=>ZH[x]).join('或')+'，請改檔名或一個一個選');continue}
+    const s=m[0];
+    if(taken[s]){notes.push('「'+ZH[s]+'」有兩個檔案，採用「'+taken[s]+'」，略過「'+f.name+'」');continue}
+    if(await addFile(s,f))taken[s]=f.name;
+  }
+  e.target.value='';
+  renderLoaded(notes.length?'注意：'+notes.join('；'):'');
+  if(notes.length){toast(notes.join('；'),6000);if(!urls.idle)$('dLoad').open=true}
+});
+STATES.forEach(x=>{
+  const d=document.createElement('div');d.className='grow';
+  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':'')+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.addEventListener('change',async e=>{const f=e.target.files[0];if(f)await addFile(x[0],f);e.target.value=''});
+  d.appendChild(inp);$('slots').appendChild(d);
+});
+$('fBg').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  if(await setBg(f,f.name)){
+    $('scene').value='custom';applyScene();refreshSticker();
+    await persist('bg',{buf:await f.arrayBuffer(),type:f.type||'image/jpeg',name:f.name});saveSettings();
+  }
+  e.target.value='';
+});
+
+/* ================= scenes ================= */
+const SCENES={
+  room:'linear-gradient(to bottom,#f7e8d0 0,#f7e8d0 58%,#c9a074 58%,#c9a074 59.5%,#e3c297 59.5%,#d6b283 100%)',
+  grass:'linear-gradient(to bottom,#cfeaff 0,#eaf7ff 52%,#8ecb7a 52%,#74b862 100%)',
+  night:'radial-gradient(circle at 20% 22%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 70% 15%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 45% 35%,#fff 0 1px,transparent 1.6px),radial-gradient(circle at 88% 40%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 10% 48%,#fff 0 1px,transparent 1.6px),linear-gradient(to bottom,#1d2347 0,#3b3f78 56%,#2b2a4f 56%,#1c1b38 100%)',
+  pastel:'linear-gradient(160deg,#ffd9e8,#d9e8ff 55%,#e4ffe0)',
+  meadow:'radial-gradient(circle at 12% 20%,#ffe27a 0 6px,transparent 7px),radial-gradient(circle at 58% 12%,#fff 0 6px,transparent 7px),radial-gradient(circle at 86% 30%,#ffb3c7 0 6px,transparent 7px),radial-gradient(circle at 30% 62%,#fff 0 6px,transparent 7px),radial-gradient(circle at 74% 70%,#ffe27a 0 6px,transparent 7px),radial-gradient(circle at 20% 88%,#ffb3c7 0 6px,transparent 7px),radial-gradient(ellipse at 40% 38%,rgba(70,170,60,.35) 0,rgba(70,170,60,.35) 22%,transparent 23%),radial-gradient(ellipse at 78% 78%,rgba(70,170,60,.3) 0,rgba(70,170,60,.3) 20%,transparent 21%),linear-gradient(#8be072,#66c852)'
+};
+function applyScene(){
+  let s=$('scene').value;
+  $('solidWrap').hidden=(s!=='solid');
+  if(s==='custom'&&!bgURL){s='room';$('scene').value='room'}
+  if(s==='solid')stage.style.background=$('bgPick').value;
+  else if(s==='custom')stage.style.background='#ddd url('+bgURL+') center/cover no-repeat';
+  else stage.style.background=SCENES[s]||SCENES.room;
+  refreshSticker();
+}
+$('scene').addEventListener('change',()=>{
+  if($('scene').value==='meadow'){$('view').value='top';viewTop=true}
+  applyScene();saveSettings();
+});
+$('view').addEventListener('change',()=>{viewTop=($('view').value==='top');saveSettings()});
+$('bgPick').addEventListener('input',()=>{bgManual=true;applyScene();saveSettings()});
+$('stickerMode').addEventListener('change',()=>{refreshSticker();saveSettings()});
+$('pix').addEventListener('change',()=>{document.body.classList.toggle('pixel',$('pix').checked);saveSettings()});
+$('nameIn').addEventListener('input',()=>{$('name').textContent=$('nameIn').value;saveSettings()});
+$('size').addEventListener('input',()=>{pet.style.width=$('size').value+'px';saveSettings()});
+$('lines').addEventListener('input',saveSettings);
+$('foodIn').addEventListener('input',()=>{
+  const c=Array.from($('foodIn').value.trim());
+  if(c.length){food=c.slice(0,2).join('');document.querySelectorAll('#foodPicks .pick').forEach(x=>x.classList.remove('on'))}
+  saveSettings();
+});
+
+/* ================= show / state machine ================= */
+function show(){
+  hint.style.display='none';pet.hidden=false;
+  document.querySelectorAll('.needpet').forEach(b=>{b.disabled=false});
+  if(!started){
+    started=true;
+    document.querySelectorAll('#dLoad,#dScene').forEach(d=>{d.open=false});
+    P.x=W()/2-PW()/2;applyState(true);requestAnimationFrame(tick);
+  }else applyState(true);
+}
+function resetUI(){
+  pet.hidden=true;hint.style.display='flex';stateName='';$('stateTag').textContent='';
+  document.querySelectorAll('.needpet').forEach(b=>{b.disabled=true});
+  document.querySelectorAll('#dLoad').forEach(d=>{d.open=true});
+}
+function desired(){
+  const t=performance.now();
+  if(resting)return 'sleep';
+  if(t<eatUntil)return 'eat';
+  if(t<happyUntil)return 'happy';
+  if(P.moving&&urls.walk)return 'walk';
+  if(!catching&&!focusing&&full<30)return 'hungry';
+  if(!catching&&!focusing&&t-lastInteract>MISS_MS)return 'miss';
+  return 'idle';
+}
+function applyState(force){
+  if(!urls.idle)return;
+  const d=desired(),t=performance.now();
+  if(d!==stateName||force){
+    const prev=stateName;stateName=d;
+    const u=urls[d]||urls.idle;
+    if(img.getAttribute('data-u')!==u){img.src=u;img.setAttribute('data-u',u)}
+    $('stateTag').textContent='狀態：'+ZH[d]+(urls[d]?'':(d==='idle'?'':'（用待機圖）'));
+    refreshSticker();
+    if(!focusing){
+      if(d==='miss'&&prev!=='miss'){say('你去哪了…我好想你。',3500);nextSay=t+30000}
+      if(d==='hungry'&&prev!=='hungry'){say('肚子餓了…',2500);nextSay=t+25000}
+    }
+  }
+  if(!focusing&&(d==='hungry'||d==='miss')&&t>nextSay){say(d==='hungry'?'肚子餓了…':'好想你…',2200);nextSay=t+25000}
+}
+document.addEventListener('pointerdown',()=>{
+  const was=(performance.now()-lastInteract>MISS_MS&&!!urls.idle&&!focusing&&!catching);
+  lastInteract=performance.now();
+  if(was){say('你回來了！',2000);happy(1800);hearts(3)}
+},true);
+document.addEventListener('keydown',()=>{lastInteract=performance.now()},true);
+
+/* ================= fx / speech ================= */
+function say(text,ms){bubble.textContent=text;bubble.hidden=false;clearTimeout(bubbleT);bubbleT=setTimeout(()=>{bubble.hidden=true},ms||2200)}
+function lines(){const a=$('lines').value.split('\n').map(s=>s.trim()).filter(Boolean);return a.length?a:['…']}
+function happy(ms){happyUntil=performance.now()+(ms||1800)}
+function hop(n){inner.classList.remove('hop','hop3');void inner.offsetWidth;inner.classList.add(n===3?'hop3':'hop');busyUntil=performance.now()+(n===3?1500:500)}
+function petRect(){const s=stage.getBoundingClientRect(),p=img.getBoundingClientRect();return {l:p.left-s.left,t:p.top-s.top,w:p.width,h:p.height,cx:p.left-s.left+p.width/2}}
+function spawnFx(ch,left,top){const s=document.createElement('span');s.className='fx';s.textContent=ch;s.style.left=left+'px';s.style.top=top+'px';fx.appendChild(s);s.addEventListener('animationend',()=>s.remove())}
+function hearts(n){const b=petRect();for(let i=0;i<n;i++)setTimeout(()=>spawnFx('❤️',b.cx-14+rand(-30,30),b.t+10+rand(0,20)),i*120)}
+
+/* ================= movement & interactions ================= */
+function goTo(tx,ty,cb,fast){P.tx=clamp(tx,0,Math.max(0,W()-PW()));P.ty=clamp(ty,0,YMAX());P.cb=cb||null;P.fast=!!fast;P.wander=false}
+function cancelPending(){if(pend){pend.remove();pend=null}P.tx=null;P.cb=null;P.wander=false}
+function canWander(){return !resting&&!catching&&!focusing}
+function stagePoint(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+stage.addEventListener('pointerdown',e=>{
+  if(!urls.idle||catching)return;
+  if(e.target.closest&&(e.target.closest('#pet')||e.target.closest('#overlay')))return;
+  if(resting)return;
+  const p=stagePoint(e);
+  if(mode==='play'){throwToy(p.x-16,clamp(stage.clientHeight-p.y-20,0,YMAX()));return}
+  cancelPending();
+  goTo(p.x-PW()/2,stage.clientHeight-p.y-20,null,false);
+});
+function placeItem(ch,ix,iy){const s=document.createElement('span');s.className='item';s.textContent=ch;s.style.left=ix+'px';s.style.bottom=(8+iy)+'px';items.appendChild(s);return s}
+const FOODSAY={'🌶':'好辣！！','🍰':'甜甜的～','🐟':'魚！！','🍖':'肉！好香','🥕':'嘎吱嘎吱','🍩':'甜甜圈～','🍉':'清涼～','🍓':'酸酸甜甜'};
+function feed(){
+  if(catching){toast('接食物進行中，等遊戲結束再餵。');return}
+  if(resting)wake();
+  cancelPending();
+  const ix=rand(24,Math.max(40,W()-70)),iy=rand(0,YMAX());
+  const el=placeItem(food,ix,iy),key=food.replace(/️/g,''),msg=FOODSAY[key]||'好好吃！';
+  pend=el;
+  goTo(ix+16-PW()/2,iy,()=>{
+    pend=null;el.classList.add('pop');setTimeout(()=>el.remove(),500);
+    addFull(18);addMood(key==='🌶'?-4:6);hop(1);eatUntil=performance.now()+1600;happy(2800);hearts(2);say(msg,1800);
+  },false);
+}
+function throwToy(ix,iy){
+  if(catching){toast('接食物進行中，等遊戲結束再玩。');return}
+  if(resting)wake();
+  cancelPending();
+  ix=clamp(ix,10,Math.max(20,W()-50));
+  const el=placeItem(toy,ix,iy);pend=el;
+  goTo(ix+16-PW()/2,iy,()=>{
+    pend=null;el.classList.add('bounce');
+    playN++;$('playN').textContent=playN;addMood(10);addFull(-3);hop(3);happy(1700);hearts(3);say('耶～好好玩！',1800);
+    setTimeout(()=>{el.classList.remove('bounce');el.classList.add('pop');setTimeout(()=>el.remove(),500)},1600);
+  },true);
+}
+function rest(){
+  if(resting)return;
+  if(catching){toast('接食物進行中，等遊戲結束再休息。');return}
+  cancelPending();items.innerHTML='';
+  resting=true;stage.classList.add('night');say('Zzz…',5800);
+  zT=setInterval(()=>{const b=petRect();spawnFx('💤',b.cx+10,b.t-4)},900);
+  wakeT=setTimeout(wake,6000);addMood(8);
+}
+function wake(){
+  if(!resting)return;
+  resting=false;stage.classList.remove('night');clearInterval(zT);clearTimeout(wakeT);
+  say('睡飽了！',1500);hop(1);P.idle=1;
+}
+function poke(){
+  if(resting){wake();return}
+  const l=lines();say(l[Math.floor(Math.random()*l.length)],2400);
+  addMood(4);hop(1);happy(1500);hearts(2);
+}
+img.addEventListener('click',poke);
+$('bFeed').addEventListener('click',feed);
+$('bPet').addEventListener('click',poke);
+$('bRest').addEventListener('click',rest);
+$('bThrow').addEventListener('click',()=>throwToy(rand(24,Math.max(40,W()-70)),rand(0,YMAX())));
+$('bClear').addEventListener('click',()=>{items.innerHTML='';cancelPending()});
+
+/* ================= pickers / tabs ================= */
+const FOODS=['🍙','🍓','🍰','🐟','🍖','🥕','🍩','🍉','🌶️'],TOYS=['🎾','⚽','🧶','🪀','🎈'];
+function buildPicks(id,arr,cur,onPick){
+  const box=$(id);box.innerHTML='';
+  arr.forEach(ch=>{
+    const b=document.createElement('button');b.type='button';b.className='pick'+(ch===cur?' on':'');b.textContent=ch;
+    b.addEventListener('click',()=>{box.querySelectorAll('.pick').forEach(x=>x.classList.remove('on'));b.classList.add('on');onPick(ch)});
+    box.appendChild(b);
+  });
+}
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.m===m));
+  document.querySelectorAll('.panel').forEach(p=>{p.hidden=(p.dataset.p!==m)});
+}
+$('tabs').addEventListener('click',e=>{const t=e.target.closest('.tab');if(!t)return;if(catching){toast('遊戲進行中，結束後再切換。');return}setMode(t.dataset.m)});
+
+/* ================= catch game ================= */
+let gScore=0,gLeft=0,gItems=[],gSpawn=0,gPaused=false,catchX=null,best=parseInt(lsGet('stage_best')||'0',10)||0;
+$('bestN').textContent=best;
+function hudUpdate(){hud.textContent=(gPaused?'⏸ 暫停｜':'')+'分數 '+gScore+'｜剩 '+Math.ceil(gLeft)+' 秒'}
+function startCatch(){
+  if(catching||!urls.idle)return;
+  if(focusing){toast('專注進行中，請先按「停止」再玩遊戲。');return}
+  if(resting)wake();
+  cancelPending();items.innerHTML='';overlay.hidden=true;
+  catching=true;gScore=0;gLeft=GAME_SEC;gSpawn=0.3;gPaused=false;P.y=0;catchX=P.x;
+  stage.style.touchAction='none';hud.hidden=false;hudUpdate();say('開始！',900);
+}
+function spawnFall(){
+  const bad=Math.random()<0.18,fav=!bad&&Math.random()<0.25,pool=['🍙','🍓','🍰','🐟','🍖','🥕','🍩','🍉'];
+  const ch=bad?'🌶️':(fav?food:pool[Math.floor(Math.random()*pool.length)]);
+  const s=document.createElement('span');s.className='falling';s.textContent=ch;
+  const x=rand(10,Math.max(20,W()-50));s.style.left=x+'px';s.style.top='-40px';stage.appendChild(s);
+  gItems.push({el:s,x:x,y:-40,vy:rand(130,230)+(GAME_SEC-gLeft)*3,bad:bad,fav:fav});
+}
+function stepCatch(dt){
+  if(gPaused)return;
+  gLeft-=dt;
+  if(gLeft<=0){gLeft=0;hudUpdate();endCatch();return}
+  gSpawn-=dt;if(gSpawn<=0){spawnFall();gSpawn=Math.max(0.35,0.62-(GAME_SEC-gLeft)*0.004)}
+  const l=keys.ArrowLeft?1:0,r=keys.ArrowRight?1:0;
+  if(l||r)catchX=clamp((catchX==null?P.x:catchX)+(r-l)*360*dt,0,Math.max(0,W()-PW()));
+  if(catchX!=null){
+    if(Math.abs(catchX-P.x)>1.5)P.dir=(catchX>P.x)?1:-1;
+    P.moving=Math.abs(catchX-P.x)>3;P.x+=(catchX-P.x)*Math.min(1,dt*14);
+  }
+  const rc=petRect(),hx0=rc.l+rc.w*0.18,hx1=rc.l+rc.w*0.82,hy0=rc.t+rc.h*0.1,hy1=rc.t+rc.h*0.7;
+  for(let i=gItems.length-1;i>=0;i--){
+    const it=gItems[i];it.y+=it.vy*dt;it.el.style.top=it.y+'px';
+    const cx=it.x+16,cy=it.y+16;
+    if(cx>hx0&&cx<hx1&&cy>hy0&&cy<hy1){
+      gScore+=it.bad?-1:(it.fav?3:1);spawnFx(it.bad?'💥':(it.fav?'⭐':'✨'),it.x,it.y-6);if(it.bad)hop(1);
+      it.el.remove();gItems.splice(i,1);
+    }else if(it.y>stage.clientHeight){it.el.remove();gItems.splice(i,1)}
+  }
+  hudUpdate();
+}
+function endCatch(){
+  if(!catching)return;
+  catching=false;gPaused=false;gItems.forEach(it=>it.el.remove());gItems=[];
+  stage.style.touchAction='manipulation';hud.hidden=true;
+  const isBest=gScore>best;if(isBest){best=gScore;lsSet('stage_best',String(best));$('bestN').textContent=best}
+  addMood(Math.min(20,Math.max(0,gScore)));addFull(-6);
+  overlay.innerHTML='<b>時間到！</b><div>得分 '+gScore+(isBest?'　🎉 新紀錄':'　最高 '+best)+'</div>';
+  const b=document.createElement('button');b.className='btn';b.textContent='再玩一次';b.style.padding='0 24px';b.onclick=startCatch;
+  const c=document.createElement('button');c.className='btn alt';c.textContent='關閉';c.style.padding='0 24px';c.onclick=()=>{overlay.hidden=true};
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:10px';row.appendChild(b);row.appendChild(c);overlay.appendChild(row);overlay.hidden=false;
+  hearts(gScore>=10?6:2);happy(2000);hop(3);
+}
+function pauseGame(){
+  if(!catching||gPaused)return;
+  gPaused=true;hudUpdate();
+  overlay.innerHTML='<b>⏸ 已暫停</b><div>你離開了這個分頁，遊戲先停住了。</div>';
+  const b=document.createElement('button');b.className='btn';b.textContent='繼續';b.style.padding='0 28px';b.onclick=()=>{gPaused=false;overlay.hidden=true;hudUpdate()};
+  overlay.appendChild(b);overlay.hidden=false;
+}
+stage.addEventListener('pointermove',e=>{if(!catching||gPaused)return;const p=stagePoint(e);catchX=clamp(p.x-PW()/2,0,Math.max(0,W()-PW()))});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){keys[e.key]=true;if(catching)e.preventDefault()}});
+addEventListener('keyup',e=>{delete keys[e.key]});
+addEventListener('blur',()=>{keys={}});
+$('bCatch').addEventListener('click',startCatch);
+
+/* ================= focus (timestamp based) ================= */
+let focusEnd=0,focusT=null,focusDone=false,lastEnc=-1;
+const fmt=s=>{s=Math.max(0,Math.round(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+pad2(s%60)};
+function readMinutes(){
+  const raw=$('focusMin').value.trim();
+  if(raw==='')return null;
+  const m=Number(raw);
+  if(!isFinite(m)||m<=0)return null;
+  return Math.min(m,180);
+}
+function showFocusIdle(){const m=readMinutes();$('focusTime').textContent=m?fmt(m*60):'--:--'}
+document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{if(!focusing){$('focusMin').value=b.dataset.q;showFocusIdle()}}));
+$('focusMin').addEventListener('input',()=>{if(!focusing)showFocusIdle()});
+function updateFocus(){
+  if(!focusing)return;
+  const left=Math.ceil((focusEnd-Date.now())/1000);
+  $('focusTime').textContent=fmt(Math.max(0,left));
+  if(left<=0){if(!focusDone){focusDone=true;finishFocus(true)}return}
+  if(left%300===0&&left!==lastEnc){lastEnc=left;say('還有 '+Math.round(left/60)+' 分鐘，加油！',2200)}
+}
+$('bFocus').addEventListener('click',()=>{
+  if(focusing)return;
+  if(catching){toast('接食物進行中，結束後再開始專注。');return}
+  const m=readMinutes();
+  if(!m){toast('請輸入大於 0 的分鐘數（最多 180）。');return}
+  $('focusMin').value=String(m);
+  if(resting)wake();
+  cancelPending();items.innerHTML='';
+  focusing=true;focusDone=false;lastEnc=-1;focusEnd=Date.now()+m*60000;
+  stage.classList.add('focus');say('我陪你，一起專心。',2200);$('bFocus').textContent='專注中…';
+  updateFocus();focusT=setInterval(updateFocus,250);
+});
+function finishFocus(done){
+  clearInterval(focusT);focusing=false;stage.classList.remove('focus');$('bFocus').textContent='開始專注';
+  if(done){addMood(15);hearts(8);hop(3);happy(2500);say('專注完成！你好棒！',3500);$('focusTime').textContent='完成 ✓'}
+  else{showFocusIdle();say('沒關係，下次再一起。',2200)}
+}
+$('bFocusStop').addEventListener('click',()=>{if(focusing)finishFocus(false)});
+showFocusIdle();
+
+/* ================= water (date-checked) ================= */
+let waterDay=todayKey(),cups=0;
+const waterKey=d=>'stage_water_'+d;
+function syncDay(){const t=todayKey();if(t!==waterDay||cups===null){waterDay=t;cups=parseInt(lsGet(waterKey(t))||'0',10)||0}}
+function drawCups(){
+  syncDay();
+  const g=parseInt($('goal').value,10);let s='';
+  for(let i=0;i<g;i++)s+=(i<cups?'💧':'⚪');
+  $('cups').textContent=s+'　'+cups+' / '+g;
+}
+$('goal').addEventListener('change',()=>{drawCups();saveSettings()});
+$('bWater').addEventListener('click',()=>{
+  syncDay();cups++;lsSet(waterKey(waterDay),String(cups));drawCups();
+  const g=parseInt($('goal').value,10);addMood(3);hop(1);happy(1400);
+  if(cups===g){hearts(8);hop(3);say('今天的目標達成了！',3500)}
+  else if(cups>g)say('喝很多了喔～',1800);
+  else say('咕嚕咕嚕～ '+cups+' / '+g,1800);
+});
+$('bWaterReset').addEventListener('click',()=>{syncDay();cups=0;lsSet(waterKey(waterDay),'0');drawCups()});
+cups=parseInt(lsGet(waterKey(waterDay))||'0',10)||0;
+
+/* ================= visibility / resize ================= */
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){keys={};pauseGame()}
+  else{updateFocus();drawCups()}
+});
+addEventListener('resize',()=>{
+  P.x=clamp(P.x,0,Math.max(0,W()-PW()));P.y=clamp(P.y,0,YMAX());
+  if(P.tx!=null)P.tx=clamp(P.tx,0,Math.max(0,W()-PW()));
+  items.querySelectorAll('.item').forEach(el=>{el.style.left=clamp(parseFloat(el.style.left)||0,0,Math.max(0,W()-40))+'px'});
+});
+
+/* ================= main loop ================= */
+function tick(t){
+  const dt=Math.min(0.05,((t-last)/1000)||0);last=t;
+  const w=W(),pw=PW(),ym=YMAX();
+  P.moving=false;
+  if(catching){stepCatch(dt)}
+  else if(t>busyUntil&&!resting){
+    if(P.tx!=null){
+      const dx=P.tx-P.x,dy=P.ty-P.y,dist=Math.hypot(dx,dy);
+      const sp=P.fast?170:(P.wander?42:105),step=sp*dt;
+      if(dist<=step+0.6){
+        P.x=P.tx;P.y=P.ty;P.tx=null;const cb=P.cb;P.cb=null;P.wander=false;P.idle=rand(2.5,5.5);if(cb)cb();
+      }else{
+        P.x+=dx/dist*step;P.y+=dy/dist*step;if(Math.abs(dx)>1)P.dir=dx>0?1:-1;P.moving=true;
+      }
+    }else if(canWander()){
+      P.idle-=dt;
+      if(P.idle<=0){P.tx=clamp(P.x+rand(-170,170),0,Math.max(0,w-pw));P.ty=rand(0,ym);P.wander=true;P.cb=null}
+    }
+  }
+  P.x=clamp(P.x,0,Math.max(0,w-pw));P.y=clamp(P.y,0,ym);
+  const s=viewTop?(1.06-0.26*(P.y/(ym||1))):(1-0.28*(P.y/(ym||1)));
+  pet.style.transform='translate('+P.x.toFixed(1)+'px,'+(-P.y).toFixed(1)+'px) scale('+s.toFixed(3)+')';
+  img.style.transform='scaleX('+P.dir+')';
+  if(P.moving){
+    P.phase+=dt*(P.fast?18:11);
+    inner.style.transform='translateY('+(-Math.abs(Math.sin(P.phase))*6).toFixed(1)+'px) rotate('+(Math.sin(P.phase)*3.5).toFixed(1)+'deg)';
+  }else if(inner.style.transform){inner.style.transform=''}
+  applyState();
+  requestAnimationFrame(tick);
+}
+
+/* ================= backup / wipe ================= */
+function b64ToBuf(dataUrl){const b=atob(dataUrl.split(',')[1]),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer}
+function bufToDataURL(rec){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(fr.error||new Error('讀取失敗'));fr.readAsDataURL(new Blob([rec.buf],{type:rec.type}))})}
+async function exportBackup(){
+  try{
+    const assets={};
+    for(const k of Object.keys(store))assets[k]={name:store[k].name,type:store[k].type,data:await bufToDataURL(store[k])};
+    const records={};lsKeys().forEach(k=>{if(k&&/^stage_(water_|best)/.test(k))records[k]=lsGet(k)});
+    const obj={app:'oathwoven-stage',version:4,exportedAt:new Date().toISOString(),settings:collect(),assets:assets,records:records};
+    const blob=new Blob([JSON.stringify(obj)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='角色舞台備份_'+todayKey()+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+    toast('已匯出備份，檔案在你的下載資料夾。');
+  }catch(e){toast('匯出失敗：'+(e&&e.message||e),5000)}
+}
+async function wipeMemory(){
+  Object.keys(urls).forEach(k=>{URL.revokeObjectURL(urls[k]);delete urls[k]});
+  Object.keys(meta).forEach(k=>delete meta[k]);Object.keys(store).forEach(k=>delete store[k]);
+  if(bgURL){URL.revokeObjectURL(bgURL);bgURL=null}
+  img.removeAttribute('data-u');img.removeAttribute('src');
+  try{await idbClear()}catch(e){}
+  lsKeys().forEach(k=>{if(k&&/^stage_/.test(k))lsDel(k)});
+}
+async function importBackup(file){
+  let obj;
+  try{obj=JSON.parse(await file.text())}catch(e){toast('這不是有效的備份檔，讀不到內容。',4500);return}
+  if(!obj||obj.app!=='oathwoven-stage'||typeof obj.assets!=='object'){toast('這不是「角色舞台」的備份檔。',4500);return}
+  if(!(await ask('匯入會取代目前的角色、背景、設定和紀錄，取代後無法復原。確定要匯入嗎？','取代並匯入')))return;
+  try{
+    await wipeMemory();resetUI();restoring=true;
+    for(const k of Object.keys(obj.assets)){
+      const a=obj.assets[k],buf=b64ToBuf(a.data),blob=new Blob([buf],{type:a.type||'image/gif'});
+      if(k==='bg'){ if(await setBg(blob,a.name||'bg'))await persist('bg',{buf:buf,type:a.type,name:a.name}) }
+      else if(urls!==null&&STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,a.name||k))await persist(k,{buf:buf,type:a.type,name:a.name}) }
+    }
+    if(obj.records)Object.keys(obj.records).forEach(k=>{if(/^stage_(water_|best)/.test(k))lsSet(k,obj.records[k])});
+    applySettings(obj.settings);
+    buildPicks('foodPicks',FOODS,food,c=>{food=c;$('foodIn').value='';saveSettings()});buildPicks('toyPicks',TOYS,toy,c=>{toy=c;saveSettings()});
+    best=parseInt(lsGet('stage_best')||'0',10)||0;$('bestN').textContent=best;
+    waterDay=todayKey();cups=parseInt(lsGet(waterKey(waterDay))||'0',10)||0;drawCups();
+    applyScene();restoring=false;saveSettings();
+    if(!urls.idle)toast('備份裡沒有「待機」圖，請補一張。',4500);else toast('已匯入備份。');
+  }catch(e){restoring=false;toast('匯入失敗：'+(e&&e.message||e),5000)}
+}
+$('bExport').addEventListener('click',exportBackup);
+$('fImport').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(f)await importBackup(f)});
+$('bWipe').addEventListener('click',async()=>{
+  if(!(await ask('這會刪除保存在這個瀏覽器裡的角色、背景、設定和紀錄，無法復原。建議先匯出備份。確定要全部清除嗎？','全部清除')))return;
+  await wipeMemory();toast('已清除全部資料。');setTimeout(()=>location.reload(),600);
+});
+
+/* ================= boot ================= */
+async function boot(){
+  try{applySettings(JSON.parse(lsGet('stage_settings')||'null'))}catch(e){}
+  buildPicks('foodPicks',FOODS,food,c=>{food=c;$('foodIn').value='';saveSettings()});
+  buildPicks('toyPicks',TOYS,toy,c=>{toy=c;saveSettings()});
+  applyScene();drawCups();renderLoaded();
+  try{
+    db=await openDB();
+    const all=await idbAll(),n=Object.keys(all).length;
+    for(const k of Object.keys(all)){
+      const rec=all[k],blob=new Blob([rec.buf],{type:rec.type||'image/gif'});
+      if(k==='bg'){ if(await setBg(blob,rec.name||'bg'))store.bg=rec }
+      else if(STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,rec.name||k))store[k]=rec }
+    }
+    applyScene();
+    saveStatus(n?'✓ 已從這個瀏覽器恢復你上次的角色與設定。':'✓ 這個瀏覽器可以保存；放進角色後，下次打開還在。','ok');
+  }catch(e){
+    db=null;
+    saveStatus('⚠ 這個環境無法保存素材（'+(e&&e.message||e)+'）。重新整理後要重新選檔，請用「匯出備份」留一份。','warn');
+  }
+  restoring=false;
+}
+if(FAST)window.__d={addFull:addFull,addMood:addMood,full:()=>full,mood:()=>mood,idleAgo:ms=>{lastInteract=performance.now()-ms},state:()=>stateName,meta:()=>meta,urls:()=>Object.keys(urls),pend:()=>!!pend,items:()=>items.querySelectorAll('.item').length,playN:()=>playN,stickerClass:()=>img.classList.contains('stk'),setFull:v=>{full=v;meters()}};
+boot();
+})();
+</script>
+</body>
+</html>

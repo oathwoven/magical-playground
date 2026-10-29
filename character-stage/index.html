@@ -108,7 +108,7 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <p class="tip">只需一張「待機」圖片或 GIF 就能開始；其他動作可以之後慢慢補齊。想換新的：再選一次同狀態的檔案就會取代（待機也一樣，不用清除資料）。</p>
 <div class="row" style="margin-top:12px">
 <div class="grow"><p class="lab">一次選全部（可多選）</p><input type="file" id="fAll" accept="image/*" multiple>
-<p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。</p></div>
+<p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。想多放幾個待機動作，可以放好幾個檔名含「待機」的檔案（最多 4 個），待機時會輪流換著演。GIF、WebP、PNG 都可以。</p></div>
 </div>
 <details style="margin-top:10px"><summary style="font-size:16px">或一個一個選（七種狀態）</summary><div id="slots" class="row" style="margin-top:10px"></div></details>
 <div id="loaded" class="note"></div>
@@ -276,7 +276,12 @@ const stage=$('stage'),pet=$('pet'),inner=$('inner'),img=$('petImg'),bubble=$('b
 const FAST=/fast/.test(location.hash);
 const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:40000, DECAY_MS=FAST?600:6000;
 const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
-const ZH={};STATES.forEach(s=>ZH[s[0]]=s[1]);
+const IDLEX=[['idle2','待機 2'],['idle3','待機 3'],['idle4','待機 4']];
+const SLOTS=STATES.concat(IDLEX);
+const ZH={};SLOTS.forEach(s=>ZH[s[0]]=s[1]);
+let idleKey='idle',idleNext=0;
+function idleVariants(){return ['idle','idle2','idle3','idle4'].filter(k=>urls[k])}
+function pickIdle(avoid){const v=idleVariants();if(!v.length)return 'idle';const c=v.filter(k=>k!==avoid);const a=c.length?c:v;return a[Math.floor(Math.random()*a.length)]}
 
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -399,7 +404,7 @@ function stickerOn(state){
 function refreshSticker(){img.classList.toggle('stk',stickerOn(stateName||'idle'))}
 
 function renderLoaded(extra){
-  const got=STATES.filter(s=>urls[s[0]]).map(s=>s[1]+'←'+(meta[s[0]].name||''));
+  const got=SLOTS.filter(s=>urls[s[0]]).map(s=>s[1]+'←'+(meta[s[0]].name||''));
   const miss=STATES.filter(s=>!urls[s[0]]&&s[0]!=='idle').map(s=>s[1]);
   let t=got.length?'已載入：'+got.join('、'):'還沒有載入任何狀態';
   if(urls.idle&&miss.length)t+='　｜　還沒有「'+miss.join('、')+'」，會先用待機代替';
@@ -468,6 +473,7 @@ function nextBg(){
 $('bBgNext').addEventListener('click',nextBg);$('bBgNext2').addEventListener('click',nextBg);
 $('bgAuto').addEventListener('change',()=>{bgLast=performance.now();saveSettings()});
 ['walkSpd','chat','restTime','wakeMode','moveMode'].forEach(k=>$(k).addEventListener('change',saveSettings));
+setInterval(()=>{if(!started||document.hidden||stateName!=='idle'||idleVariants().length<2||resting||catching||focusing)return;const t=performance.now();if(t<idleNext)return;idleKey=pickIdle(idleKey);applyState(true)},1000);
 setInterval(()=>{const sec=parseInt($('bgAuto').value,10)||0;if(!sec||bgs.length<2||document.hidden||!started)return;if(performance.now()-bgLast>=sec*1000)nextBg()},1000);
 
 /* 檔名配對：英文要整個單字，中文要完整詞；單字只有在整個檔名剛好等於它時才算 */
@@ -501,7 +507,8 @@ $('fAll').addEventListener('change',async e=>{
       continue;
     }
     if(m.length>1){notes.push('「'+f.name+'」可能是'+m.map(x=>ZH[x]).join('或')+'，請改檔名或一個一個選');continue}
-    const s=m[0];
+    let s=m[0];
+    if(s==='idle'&&taken.idle){const nx=IDLEX.find(x=>!taken[x[0]]);if(nx){s=nx[0]}}
     if(taken[s]){notes.push('「'+ZH[s]+'」有兩個檔案，採用「'+taken[s]+'」，略過「'+f.name+'」');continue}
     if(await addFile(s,f))taken[s]=f.name;
   }
@@ -509,9 +516,9 @@ $('fAll').addEventListener('change',async e=>{
   renderLoaded(notes.length?'注意：'+notes.join('；'):'');
   if(notes.length){toast(notes.join('；'),6000);if(!urls.idle)$('dLoad').open=true}
 });
-STATES.forEach(x=>{
+SLOTS.forEach(x=>{
   const d=document.createElement('div');d.className='grow';
-  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':'')+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
+  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':(x[0].indexOf('idle')===0?'（選填，待機時會輪流演）':''))+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.addEventListener('change',async e=>{const f=e.target.files[0];if(f)await addFile(x[0],f);e.target.value=''});
   d.appendChild(inp);
@@ -522,8 +529,8 @@ STATES.forEach(x=>{
 $('fBg').addEventListener('change',async e=>{
   const files=Array.from(e.target.files);let added=0;
   for(const f of files){
-    if(f.type==='image/gif'||matchStates(f.name).length){
-      if(!(await ask('「'+f.name+'」看起來是角色動畫（GIF 或檔名像待機、走路…），通常不是背景。要把它當背景嗎？角色請放在上面的①。','當背景'))){continue}
+    if(f.type==='image/gif'||f.type==='image/webp'||matchStates(f.name).length){
+      if(!(await ask('「'+f.name+'」看起來是角色動畫（GIF／WebP 動畫或檔名像待機、走路…），通常不是背景。要把它當背景嗎？角色請放在上面的①。','當背景'))){continue}
     }
     const en=await addBg(f,f.name);
     if(en){await persist(bgKey(en.id),{buf:await f.arrayBuffer(),type:f.type||'image/jpeg',name:f.name});bgCur=en.id;added++}
@@ -596,7 +603,8 @@ function applyState(force){
   const d=desired(),t=performance.now();
   if(d!==stateName||force){
     const prev=stateName;stateName=d;
-    const u=urls[d]||urls.idle;
+    if(d==='idle'){if(prev!=='idle'||!urls[idleKey])idleKey=pickIdle(idleKey);idleNext=t+rand(15000,30000)}
+    const u=(d==='idle'?urls[idleKey]:urls[d])||urls.idle;
     if(img.getAttribute('data-u')!==u){img.src=u;img.setAttribute('data-u',u)}
     $('stateTag').textContent='狀態：'+ZH[d]+(urls[d]?'':(d==='idle'?'':'（用待機圖）'));
     refreshSticker();
@@ -983,7 +991,7 @@ async function importBackup(file){
     for(const k of Object.keys(obj.assets)){
       const a=obj.assets[k],buf=b64ToBuf(a.data),blob=new Blob([buf],{type:a.type||'image/gif'});
       if(k==='bg'||k.indexOf('bg:')===0){ const id=k==='bg'?'bg':k.slice(3);if(await addBg(blob,a.name||'bg',id))await persist(k,{buf:buf,type:a.type,name:a.name}) }
-      else if(urls!==null&&STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,a.name||k))await persist(k,{buf:buf,type:a.type,name:a.name}) }
+      else if(urls!==null&&SLOTS.some(s=>s[0]===k)){ if(await setAsset(k,blob,a.name||k))await persist(k,{buf:buf,type:a.type,name:a.name}) }
     }
     if(obj.records)Object.keys(obj.records).forEach(k=>{if(/^stage_(water_|best)/.test(k))lsSet(k,obj.records[k])});
     applySettings(obj.settings);renderBgList();
@@ -1013,7 +1021,7 @@ async function boot(){
     for(const k of Object.keys(all)){
       const rec=all[k],blob=new Blob([rec.buf],{type:rec.type||'image/gif'});
       if(k==='bg'||k.indexOf('bg:')===0){ const id=k==='bg'?'bg':k.slice(3);if(await addBg(blob,rec.name||'bg',id))store[k]=rec }
-      else if(STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,rec.name||k))store[k]=rec }
+      else if(SLOTS.some(s=>s[0]===k)){ if(await setAsset(k,blob,rec.name||k))store[k]=rec }
     }
     try{const st=JSON.parse(lsGet('stage_settings')||'null');if(st&&st.bgCur&&bgs.some(b=>b.id===st.bgCur))bgCur=st.bgCur;if(st&&st.scene==='custom'&&bgs.length)$('scene').value='custom'}catch(e){}
     renderBgList();applyScene();

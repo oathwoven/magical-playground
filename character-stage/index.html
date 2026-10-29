@@ -213,7 +213,9 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 </div>
 <div class="row" style="margin-top:12px">
 <div class="grow"><p class="lab">休息多久</p><select id="restTime"><option value="10">10 秒</option><option value="30">30 秒</option><option value="60" selected>1 分鐘</option><option value="180">3 分鐘</option><option value="300">5 分鐘</option><option value="0">睡到我叫醒</option></select></div>
-<div class="grow"><p class="lab">睡覺時戳牠</p><select id="wakeMode"><option value="light" selected>會被吵醒</option><option value="deep">睡很沉，吵不醒</option></select></div>
+<div class="grow"><p class="lab">睡覺時戳牠</p><select id="wakeMode"><option value="light" selected>會被吵醒</option><option value="lazy">愛賴床（要戳好幾次，有時一下就醒）</option><option value="deep">睡很沉，吵不醒</option></select></div>
+<div class="grow"><p class="lab">沒人理牠多久會自己睡著</p><select id="autoSleep"><option value="0">不會</option><option value="300">5 分鐘</option><option value="600" selected>10 分鐘</option><option value="1200">20 分鐘</option><option value="1800">30 分鐘</option></select></div>
+<div class="grow"><p class="lab">牠多常走來走去</p><select id="roam"><option value="often">常常走動</option><option value="normal" selected>有時走動，有時坐著</option><option value="rare">大多坐著</option></select></div>
 </div>
 <p class="note">點舞台任何地方，牠會走過去。點牠本人，牠會說話。摸摸會有一隻小手摸牠的頭。「練習噴火」會讓牠心情變好，但很耗體力，牠太餓時會噴不出來。休息中可以按「叫醒」把牠叫起來。連續餵食時，新的食物會取代還沒吃的那個。</p>
 </section>
@@ -359,7 +361,7 @@ async function persist(key,rec){
 /* ================= settings ================= */
 function collect(){
   return {name:$('nameIn').value,size:$('size').value,scene:$('scene').value,view:$('view').value,bg:$('bgPick').value,bgManual:bgManual,
-    stickerMode:$('stickerMode').value,pix:$('pix').checked,lines:$('lines').value,goal:$('goal').value,food:food,toy:toy,foodIn:$('foodIn').value,bgCur:bgCur,bgAuto:$('bgAuto').value,moveMode:$('moveMode').value,walkSpd:$('walkSpd').value,chat:$('chat').value,restTime:$('restTime').value,wakeMode:$('wakeMode').value};
+    stickerMode:$('stickerMode').value,pix:$('pix').checked,lines:$('lines').value,goal:$('goal').value,food:food,toy:toy,foodIn:$('foodIn').value,bgCur:bgCur,bgAuto:$('bgAuto').value,moveMode:$('moveMode').value,walkSpd:$('walkSpd').value,chat:$('chat').value,restTime:$('restTime').value,wakeMode:$('wakeMode').value,autoSleep:$('autoSleep').value,roam:$('roam').value};
 }
 let saveT=null;
 function saveSettings(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{if(!lsSet('stage_settings',JSON.stringify(collect())))saveStatus('⚠ 設定沒能保存（瀏覽器不允許）。請用匯出備份留一份。','warn')},250)}
@@ -381,7 +383,7 @@ function applySettings(o){
   if(o.bgAuto&&[...$('bgAuto').options].some(x=>x.value===String(o.bgAuto)))$('bgAuto').value=String(o.bgAuto);
   if(o.moveMode&&[...$('moveMode').options].some(x=>x.value===o.moveMode))$('moveMode').value=o.moveMode;
   if(o.bgCur&&bgs.some(b=>b.id===o.bgCur))bgCur=o.bgCur;
-  ['walkSpd','chat','restTime','wakeMode'].forEach(k=>{if(o[k]!=null&&[...$(k).options].some(x=>x.value===String(o[k])))$(k).value=String(o[k])});
+  ['walkSpd','chat','restTime','wakeMode','autoSleep','roam'].forEach(k=>{if(o[k]!=null&&[...$(k).options].some(x=>x.value===String(o[k])))$(k).value=String(o[k])});
   viewTop=($('view').value==='top');
   pet.style.width=$('size').value+'px';$('name').textContent=$('nameIn').value;
 }
@@ -474,7 +476,7 @@ function nextBg(){
 }
 $('bBgNext').addEventListener('click',nextBg);$('bBgNext2').addEventListener('click',nextBg);
 $('bgAuto').addEventListener('change',()=>{bgLast=performance.now();saveSettings()});
-['walkSpd','chat','restTime','wakeMode','moveMode'].forEach(k=>$(k).addEventListener('change',saveSettings));
+['walkSpd','chat','restTime','wakeMode','autoSleep','roam','moveMode'].forEach(k=>$(k).addEventListener('change',saveSettings));
 setInterval(()=>{if(!started||document.hidden||stateName!=='idle'||idleVariants().length<2||resting||catching||focusing)return;const t=performance.now();if(t<idleNext)return;idleKey=pickIdle(idleKey);applyState(true)},1000);
 setInterval(()=>{const sec=parseInt($('bgAuto').value,10)||0;if(!sec||bgs.length<2||document.hidden||!started)return;if(performance.now()-bgLast>=sec*1000)nextBg()},1000);
 
@@ -642,7 +644,22 @@ function goTo(tx,ty,cb,fast){
   if(!moveOn()){P.tx=null;P.cb=null;P.wander=false;if(cb)setTimeout(cb,550);return}
   P.tx=clamp(tx,0,Math.max(0,W()-PW()));P.ty=clamp(ty,0,YMAX());P.cb=cb||null;P.fast=!!fast;P.wander=false}
 function cancelPending(){if(pend){pend.remove();pend=null}P.tx=null;P.cb=null;P.wander=false}
-function canWander(){return !resting&&!catching&&!focusing&&moveOn()}
+const ROAM={often:[[25,50],[25,50]],normal:[[60,150],[25,60]],rare:[[150,300],[15,35]]};
+let roaming=false,actUntil=performance.now()+rand(8,20)*1000;
+function stepAct(t){
+  if(t<actUntil)return;
+  const r=ROAM[$('roam').value]||ROAM.normal;
+  roaming=!roaming;
+  const [a,b]=roaming?r[1]:r[0];actUntil=t+rand(a,b)*1000;
+  if(roaming)P.idle=rand(0.5,2);
+}
+function canWander(){return !resting&&!catching&&!focusing&&moveOn()&&roaming}
+/* 沒人理牠一陣子，自己睡著 */
+setInterval(()=>{
+  const sec=parseInt($('autoSleep').value,10)||0;
+  if(!sec||!started||document.hidden||resting||catching||focusing||pend||P.tx!=null)return;
+  if(performance.now()-lastInteract>sec*1000)rest(true);
+},2000);
 function stagePoint(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
 stage.addEventListener('pointerdown',e=>{
   if(!urls.idle||catching)return;
@@ -727,7 +744,7 @@ function standoff(el){
 }
 function feed(){
   if(catching){toast('接食物進行中，等遊戲結束再餵。');return}
-  if(resting)wake();
+  if(resting)wake('有吃的！？');
   cancelPending();
   let ix=rand(24,Math.max(40,W()-70)),iy=rand(0,YMAX());
   if(!moveOn()){ix=clamp(P.x+PW()/2+(Math.random()<.5?-1:1)*rand(PW()*0.5,PW()*0.8)-28,8,Math.max(20,W()-64));iy=P.y}
@@ -754,31 +771,43 @@ function throwToy(ix,iy){
     setTimeout(()=>{el.classList.remove('bounce');el.classList.add('pop');setTimeout(()=>el.remove(),500)},1600);
   }),true);
 }
-function rest(){
+function rest(auto){
   if(resting)return;
   if(catching){toast('接食物進行中，等遊戲結束再休息。');return}
-  cancelPending();items.innerHTML='';
-  resting=true;stage.classList.add('night');$('bRest').textContent='☀️ 叫醒';say('Zzz…',3000);
+  cancelPending();items.innerHTML='';lazyN=0;
+  resting=true;stage.classList.add('night');$('bRest').textContent='☀️ 叫醒';say(auto?'好睏…Zzz…':'Zzz…',3000);
   zT=setInterval(()=>{const b=petRect();spawnFx('💤',b.cx+10,b.t-4)},900);
-  const sec=parseInt($('restTime').value,10)||0;
+  const sec=auto?0:(parseInt($('restTime').value,10)||0);
   clearTimeout(wakeT);if(sec>0)wakeT=setTimeout(wake,sec*1000);
   addMood(8);
 }
-function wake(){
+function wake(msg){
   if(!resting)return;
   resting=false;stage.classList.remove('night');$('bRest').textContent='🌙 休息';clearInterval(zT);clearTimeout(wakeT);
-  say('睡飽了！',1500);hop(1);P.idle=1;
+  say(typeof msg==='string'?msg:'睡飽了！',1800);hop(1);P.idle=1;lastInteract=performance.now();
 }
 let lastLine='',nextChat=performance.now()+rand(40000,80000);
 function pickLine(){const l=lines();let c=l[Math.floor(Math.random()*l.length)];if(l.length>1&&c===lastLine)c=l[(l.indexOf(c)+1)%l.length];lastLine=c;return c}
 function nudgeSleep(){say('Zzz…（睡得好沉）',1100);const b=petRect();spawnFx('💤',b.cx+10,b.t-4)}
+let lazyN=0;
+const LAZY_NO=['再五分鐘…','嗯…不要…','Zzz…（翻身）','好睏喔…','不起來…','（把頭埋進尾巴）','讓我睡嘛…'];
+function disturb(){
+  const m=$('wakeMode').value;
+  if(m==='light'){wake();return}
+  if(m==='deep'){nudgeSleep();return}
+  lazyN++;
+  // 愛賴床：每戳一次機率變高；偶爾一下就醒、偶爾賴很久
+  const p=Math.min(0.85,0.07+lazyN*0.09);
+  if(Math.random()<p){wake(lazyN<=1?'哇！好啦好啦，起來了。':'好啦好啦…被你戳醒了。')}
+  else{say(LAZY_NO[Math.floor(Math.random()*LAZY_NO.length)],1500);const b=petRect();spawnFx('💤',b.cx+10,b.t-4);hop(1)}
+}
 function poke(){
   if(catching)return;
-  if(resting){if($('wakeMode').value==='light')wake();else nudgeSleep();return}
+  if(resting){disturb();return}
   say(pickLine(),2400);addMood(3);hop(1);happy(1200);
 }
 function pat(){
-  if(resting){if($('wakeMode').value==='light')wake();else nudgeSleep();return}
+  if(resting){disturb();return}
   if(catching){toast('接食物進行中，等遊戲結束再摸摸。');return}
   const now=performance.now();busyUntil=now+1900;happyUntil=now+1900;
   const b=petRect(),h=document.createElement('span');h.className='hand';h.textContent='🖐️';h.style.left=(b.cx-23)+'px';h.style.top=(b.t-2)+'px';fx.appendChild(h);h.addEventListener('animationend',()=>h.remove());
@@ -977,11 +1006,11 @@ function tick(t){
       const dx=P.tx-P.x,dy=P.ty-P.y,dist=Math.hypot(dx,dy);
       const spm={slow:0.55,normal:1,fast:1.5}[$('walkSpd').value]||0.55,sp=(P.fast?170:(P.wander?42:105))*spm,step=sp*dt;
       if(dist<=step+0.6){
-        P.x=P.tx;P.y=P.ty;P.tx=null;const cb=P.cb;P.cb=null;P.wander=false;P.idle=rand(2.5,5.5);if(cb)cb();
+        P.x=P.tx;P.y=P.ty;P.tx=null;const cb=P.cb;P.cb=null;P.wander=false;P.idle=rand(4,9);if(cb)cb();
       }else{
         P.x+=dx/dist*step;P.y+=dy/dist*step;if(Math.abs(dx)>1)P.dir=dx>0?1:-1;P.moving=true;
       }
-    }else if(canWander()){
+    }else if(stepAct(t),canWander()){
       P.idle-=dt;
       if(P.idle<=0){P.tx=clamp(P.x+rand(-170,170),0,Math.max(0,w-pw));P.ty=rand(0,ym);P.wander=true;P.cb=null}
     }

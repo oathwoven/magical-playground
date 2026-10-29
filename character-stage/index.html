@@ -704,6 +704,14 @@ function afterSettle(el,fn){
   if(w>0)setTimeout(run,w);else run();
 }
 const FOODSAY={'🌶':'好辣！！','🍰':'甜甜的～','🐟':'魚！！','🍖':'肉！好香','🥕':'嘎吱嘎吱','🍩':'甜甜圈～','🍉':'清涼～','🍓':'酸酸甜甜'};
+/* 走到物品旁邊停下（不踩上去）：從目前所在那一側靠近，貼牆放不下就換另一側 */
+function standoff(el){
+  const cx=el._endX+28,gap=PW()*0.36,maxX=Math.max(0,W()-PW());
+  let side=(P.x+PW()/2<cx)?-1:1;
+  let tx=cx+side*gap-PW()/2;
+  if(tx<0||tx>maxX){side=-side;tx=cx+side*gap-PW()/2}
+  return {tx:clamp(tx,0,maxX),face:-side};
+}
 function feed(){
   if(catching){toast('接食物進行中，等遊戲結束再餵。');return}
   if(resting)wake();
@@ -712,7 +720,9 @@ function feed(){
   if(!moveOn()){ix=clamp(P.x+PW()/2+(Math.random()<.5?-1:1)*rand(PW()*0.5,PW()*0.8)-28,8,Math.max(20,W()-64));iy=P.y}
   const el=placeItem(food,ix,iy,'food'),key=food.replace(/️/g,''),msg=FOODSAY[key]||'好好吃！';
   pend=el;
-  goTo(el._endX+28-PW()/2,iy,()=>afterSettle(el,()=>{
+  const so=standoff(el);
+  goTo(so.tx,iy,()=>afterSettle(el,()=>{
+    P.dir=so.face;
     pend=null;el.classList.add('pop');setTimeout(()=>el.remove(),500);
     addFull(18);addMood(key==='🌶'?-4:6);hop(1);eatUntil=performance.now()+1600;happy(2800);hearts(2);say(msg,1800);
   }),false);
@@ -723,7 +733,9 @@ function throwToy(ix,iy){
   cancelPending();
   ix=clamp(ix,10,Math.max(20,W()-50));
   const el=placeItem(toy,ix,iy,'toy');pend=el;
-  goTo(el._endX+28-PW()/2,iy,()=>afterSettle(el,()=>{
+  const so=standoff(el);
+  goTo(so.tx,iy,()=>afterSettle(el,()=>{
+    P.dir=so.face;
     pend=null;el.classList.add('bounce');
     playN++;$('playN').textContent=playN;addMood(10);addFull(-3);hop(3);happy(1700);hearts(3);say('耶～好好玩！',1800);
     setTimeout(()=>{el.classList.remove('bounce');el.classList.add('pop');setTimeout(()=>el.remove(),500)},1600);

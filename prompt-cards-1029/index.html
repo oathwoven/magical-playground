@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>互動陪伴小工具　學員小卡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+html{color-scheme:light;scroll-behavior:smooth}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;background:#f3e9da;color:#3a2a20;font-family:'Noto Sans TC',sans-serif;line-height:1.65;font-size:19px}
+main{max-width:720px;margin:0 auto;padding:32px 18px 72px}
+.eyebrow{display:inline-block;background:#d2ac86;color:#2f2016;font-weight:700;font-size:16px;padding:6px 16px;border-radius:999px;margin:0 0 14px}
+h1{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-weight:800;font-size:38px;line-height:1.2;margin:0 0 12px}
+.sub{font-size:20px;color:#5a4535;margin:0 0 8px}
+.hint{font-size:18px;color:#735d4d;margin:0 0 20px}
+nav{position:sticky;top:0;z-index:5;background:#f3e9da;margin:0 -18px 8px;padding:10px 18px;border-bottom:2px solid #dcc9b0;display:flex;gap:10px;overflow-x:auto;white-space:nowrap}
+nav a{flex:none;text-decoration:none;color:#3a2a20;background:#ebdcc6;font-weight:700;font-size:17px;padding:8px 16px;border-radius:999px}
+nav a:focus-visible{outline:3px solid #6b4128}
+h2.sec{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:28px;margin:36px 0 14px;scroll-margin-top:72px}
+.card{background:#fbf6ee;border:2px solid #dcc9b0;border-radius:24px;padding:22px 20px 20px;margin:0 0 20px;scroll-margin-top:72px}
+.pill{display:inline-block;color:#fff8ee;font-weight:500;font-size:16px;padding:5px 14px;border-radius:999px;margin:0 6px 10px 0}
+.pill.must{background:#6b4128}.pill.plus{background:#a9784f}.pill.bak{background:#7a7a72}
+.pill.num{background:#ebdcc6;color:#3a2a20;font-weight:700}
+.time{display:none;font-size:16px;color:#735d4d;margin-left:4px}
+.card h3{font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:26px;line-height:1.3;margin:0 0 12px}
+.goal{margin:0 0 10px}
+.lab{font-size:16px;font-weight:700;color:#6b4128;margin:16px 0 6px}
+.prompt{white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:18px;line-height:1.7;margin:10px 0 0;background:#fff;border:2px solid #dcc9b0;border-left:10px solid #d2ac86;border-radius:14px;padding:14px 16px}
+.copy{display:block;width:100%;min-height:52px;margin:10px 0 0;background:#6b4128;color:#fff8ee;border:0;border-radius:14px;font:700 19px 'Noto Sans TC',sans-serif;cursor:pointer}
+.copy:active{transform:scale(.98)}
+.copy.done{background:#3f6b3a}
+.note{font-size:18px;color:#5a4535;margin:12px 0 0}
+ol.steps,ul.steps{font-size:19px;margin:6px 0 0;padding-left:1.4em}
+ol.steps li,ul.steps li{margin:6px 0}
+.cols{display:grid;gap:14px}
+.col{background:#ebdcc6;border-radius:16px;padding:14px 16px}
+.col .lab{margin-top:0}
+.col .prompt{background:#fbf6ee}
+.chk{background:#e4efd9;border-radius:16px;padding:12px 16px;margin-top:16px}
+.stuck{background:#f6e2d4;border-radius:16px;padding:12px 16px;margin-top:12px}
+.chk .lab,.stuck .lab{margin-top:0}
+.flow{font-weight:700;font-size:20px;margin:0}
+.todo{margin:12px 0 0;border:2px dashed #b98a5e;border-radius:14px;padding:10px 14px;font-size:17px;color:#7a5a3f;background:#fff8ee}
+.todo-i{background:#fff8ee;border:1px dashed #b98a5e;border-radius:6px;padding:0 6px;color:#7a5a3f}
+table.path{width:100%;border-collapse:collapse;font-size:17px;margin:8px 0 0;background:#fff;border-radius:12px;overflow:hidden}
+table.path th,table.path td{border:1px solid #dcc9b0;padding:8px 10px;text-align:left;vertical-align:top}
+table.path th{background:#ebdcc6}
+a{color:#6b4128;font-weight:700}
+footer{margin-top:40px;font-size:16px;color:#735d4d;text-align:right}
+table.tb{width:100%;border-collapse:collapse;margin:8px 0;font-size:18px;background:#fff}
+table.tb th,table.tb td{border:1px solid #dcc9b0;padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#ebdcc6}
+</style>
+</head>
+<body>
+<main>
+<p class="eyebrow">OathWoven × Sylas</p>
+<h1>做一個屬於你的互動陪伴小工具　學員小卡</h1>
+<p class="sub">角色 → 動畫 → 互動舞台 → 網址 → 手機圖示</p>
+<p class="hint">按「複製」貼給 AI 就能用。句子裡的「＿＿」是要換成自己內容的地方，換掉再送出。</p>
+<nav aria-label="快速跳到"><a href="#s0">開始</a><a href="#s1">角色</a><a href="#s2">動畫</a><a href="#s3">去背</a><a href="#s4">舞台</a><a href="#s5">網址</a><a href="#s6">手機圖示</a><a href="#s7">帶回家</a><a href="#s8">備案</a></nav>
+<h2 class="sec" id="s0">開始</h2>
+<section class="card" id="c01">
+<span class="pill must">必做</span><span class="pill num">01</span>
+<h3>今天要做什麼</h3>
+<p class="goal"><b>目標：</b>做出一個屬於你的互動陪伴小工具：有自己的角色、會動、能點。</p><div class="cols"><div class="col"><p class="lab">必做</p><ul class="steps"><li>一張角色參考圖</li><li>一個會動的 GIF（idle.gif）</li><li>放進自己角色的互動舞台</li><li>一個可以打開的網址（課堂會帶做，沒做完的照後面的卡片回家接續）</li></ul></div><div class="col"><p class="lab">加碼</p><ul class="steps"><li>第二個動作（eat.gif）</li><li>手機圖示（iPhone／Android）</li><li>換場景、改台詞、加功能</li></ul></div></div><p class="lab">順序</p><p class="flow">角色 → 動畫 → 互動舞台 → 網址 → 手機圖示</p><p class="lab">開始前先確認</p><ul class="steps"><li>ChatGPT、Gemini、Claude 都能登入</li><li>GitHub 能登入（沒有帳號：看網址那一組的第一張卡）</li><li>桌面建立資料夾「AI角色作品」，今天的檔案都放這裡</li></ul><p class="lab">回報進度</p><ul class="steps"><li><b>1</b> 完成　<b>2</b> 進行中　<b>3</b> 卡住了</li></ul><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>三個 AI 都登入了</li><li>資料夾「AI角色作品」建好了</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>沒額度或登不進去：看最後一組「備案」。</li></ul></div>
+</section>
+<section class="card" id="c02">
+<span class="pill must">必做</span><span class="pill num">02</span>
+<h3>提示詞怎麼寫，才不會白做</h3>
+<p class="goal"><b>目標：</b>讓 AI 第一次就比較接近你要的。</p><p class="lab">好提示詞的四件事</p><ul class="steps"><li><b>做什麼</b>：這次要完成的一件事</li><li><b>背景</b>：給誰用、角色是誰</li><li><b>規格</b>：數量、格式、一定要保留的東西</li><li><b>檢查</b>：做完我會怎麼看</li></ul><p class="lab">每個大步驟前，可以先請它複述</p><pre class="prompt">開始前，請先用三句話說明你理解的需求，再最多問我三個會影響結果的問題。我確認後，你再開始做。</pre>
+<button class="copy">複製</button><p class="lab">不滿意時：保留好的，只改一處</p><pre class="prompt">保留＿＿（已經正確的部分），只調整＿＿（一個具體問題）。其餘外觀、視角與風格不變。</pre>
+<button class="copy">複製</button><p class="note">只改一處，是為了讓修改方向清楚，避免其他地方一起變掉；修改圖片仍可能使用生圖額度。所以不影響後續操作的小瑕疵，先保留。</p><p class="note">提示詞分三層：你的想法（你說、AI 整理）＋固定規格（老師給，不要改）＋交接（請 AI 把前兩者合成給下一個 AI）。</p><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>不知道怎麼描述：一次只抓一個問題，用「保留＿＿，只改＿＿」。</li></ul></div>
+</section>
+<section class="card" id="c03">
+<span class="pill must">必做</span><span class="pill num">03</span>
+<h3>先決定互動</h3>
+<p class="goal"><b>目標：</b>畫圖之前先決定「按什麼、發生什麼、顯示哪張圖」。</p><ol class="steps"><li>第一版：一個用途、兩個互動</li><li>寫下來：<b>按什麼 → 發生什麼 → 顯示哪張圖</b></li></ol><div class="col" style="margin-top:12px"><p class="lab">範例</p><ul class="steps"><li>按「餵食」→ 角色吃東西 → eat.gif（沒有就用 idle.gif）</li><li>按「摸摸」→ 跳一下、飄愛心、說句話 → happy.gif（沒有就用 idle.gif）</li></ul></div><p class="note">愛心、跳一下、對話泡泡、倒數，程式會做，不用畫。今天一定要有的圖只有一張：待機 <b>idle.gif</b>。</p><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>我寫好了「按什麼→發生什麼→顯示哪張圖」</li><li>我知道今天一定要做的是 idle.gif</li></ul></div>
+</section>
+<h2 class="sec" id="s1">角色</h2>
+<section class="card" id="c04">
+<span class="pill must">必做</span><span class="pill num">04</span>
+<h3>角色設定：先不要生圖</h3>
+<p class="goal"><b>目標：</b>說出你的主角，決定哪三個特徵不能變。</p><ol class="steps"><li>打開 ChatGPT，建立「這次作品專用」的新對話</li><li>有寵物照片：按附件上傳，看到縮圖再送出</li><li>貼下面這段，在最後面「我的角色資料：」寫下你的想法，一兩句就好</li><li>讀完它給的方向，先不要急著畫</li></ol><pre class="prompt">先不要生成圖片。我要做一個角色，之後會用它做循環小動畫，還要放進一個互動小網頁。
+請依照我最後提供的角色資料，整理出：物種、主要顏色、兩到三個一定要保留的外觀特徵、個性、適合的簡單 2D 色塊風格。
+資料不足時，最多問我三個容易回答的問題。不要自行增加很多配件。
+請給我兩個簡短方向，等我選定後，再整理成角色設定。
+我的角色資料：</pre>
+<button class="copy">複製</button><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>我看過 AI 給的方向</li><li>我知道想選哪個</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>沒想法：寫「我想要一隻溫柔的小動物」，讓 AI 給你方向。</li></ul></div>
+</section>
+<section class="card" id="c05">
+<span class="pill must">必做</span><span class="pill num">05</span>
+<h3>選方向，鎖定三個特徵</h3>
+<p class="goal"><b>目標：</b>選定一個方向，記下三項不能變的特徵。</p><ol class="steps"><li>把「方向 1」改成你選的號碼</li><li>AI 會列出三項不能變的特徵</li><li>複製這三項到記事本，後面一直會用</li></ol><pre class="prompt">我選方向 1。請把角色設定整理成一小段生圖用的文字，並列出三項之後每張圖都要保持一致的特徵。先不要生圖。</pre>
+<button class="copy">複製</button><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>記事本裡有三項特徵</li></ul></div>
+</section>
+<section class="card" id="c06">
+<span class="pill must">必做</span><span class="pill num">06</span>
+<h3>母圖：一張單一姿勢的角色參考圖</h3>
+<p class="goal"><b>目標：</b>得到一張乾淨的母圖，後面所有動作都從它出發。</p><ol class="steps"><li>貼下面這段</li><li>AI 畫完會告訴你背景色名與色碼，<b>記下來，去背要用</b></li><li>點開原圖下載，存到「AI角色作品」，檔名 <b>01_character.png</b></li></ol><pre class="prompt">請依照我們剛剛確定的角色設定，生成一張角色參考圖。
+單一角色、單一姿勢，正面或輕微四分之三角度，全身完整，尾巴與身體關係清楚。
+角色四周至少留 15% 的空白，不要貼近畫面邊緣。
+保留角色原本配色。背景使用均勻純色作為去背色：預設純綠色 #00FF00；如果角色身上有綠色（例如綠眼睛、葉子），改用純洋紅色 #FF00FF。背景色必須與角色主要顏色明顯不同，角色身上不要出現背景色，不要漸層、紋理、地面陰影或背景色的反光。
+外輪廓清楚、連續且稍厚，避免細碎毛絲與針狀小鱗片；翅膀尖、尾尖（若有）保留足夠厚度，不做細到一兩個像素的末端；身體內部可以精緻，外緣用乾淨的色塊收邊。
+不要文字、不要多格、不要場景或額外道具。
+畫完後，請在回覆文字裡寫出你使用的背景色名與色碼。
+這張將作為後續動畫的角色外觀參考。</pre>
+<button class="copy">複製</button><p class="note">去背色預設綠色；角色身上有綠色（例如綠眼睛、葉子）就改洋紅。重點是背景色要和角色主要顏色明顯不同。ChatGPT 免費額度有限（老師實測約三張，依帳號與額度而異），這張要慎重。</p><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>三項特徵都在</li><li>身體、尾巴完整，沒被切到</li><li>外輪廓清楚、連續，沒有細碎毛絲或針尖</li><li>背景是均勻單色，沒有陰影，且和角色主色差很多</li><li>我記下了背景色名與色碼</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>有一處不對：用「保留＿＿，只改＿＿」，不要整張重來；但改圖仍可能用到生圖額度，小瑕疵可以先保留。</li><li>額度用完：直接換 Gemini，附上已有的圖。</li></ul></div>
+</section>
+<h2 class="sec" id="s2">動畫</h2>
+<section class="card" id="c07">
+<span class="pill must">必做</span><span class="pill num">07</span>
+<h3>選一個簡單的動作</h3>
+<p class="goal"><b>目標：</b>選一個容易成功的動作。</p><ul class="steps"><li>容易成功：眨眼、點頭、搖尾巴、揮手</li><li>容易失敗：翻滾、轉身、翻肚皮、跳躍（格與格之間接不起來）</li><li>動作幅度要明顯，但每一格只比前一格改變一點點</li></ul><p class="lab">還在同一個 ChatGPT 對話，貼這段，看它的三個方案</p><pre class="prompt">先不要生成圖片。請根據這個角色，提出三個適合 16 格循環動畫的小動作。
+動作幅度要明顯，一眼就看得出來，但一定要順暢、容易循環。不要翻滾、轉身、翻肚皮這類容易畫壞的大動作。
+每個方案請寫：具體動作、哪些部位固定、哪些部位移動、怎麼回到開始姿勢、容易出錯的地方。
+鏡頭固定，不走出畫面。
+請推薦一個最適合第一次製作的方案，讓我選，不要直接生圖。</pre>
+<button class="copy">複製</button><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>我選好一個方案</li></ul></div>
+</section>
+<section class="card" id="c08">
+<span class="pill must">必做</span><span class="pill num">08</span>
+<h3>把動作排成 16 格</h3>
+<p class="goal"><b>目標：</b>得到四個階段、每階段 4 格的動作安排。</p><ol class="steps"><li>把「方案 1」改成你選的號碼</li><li>看它的 16 格安排，第 16 格要能接回第 1 格</li></ol><pre class="prompt">我選方案 1。請把這個動作整理成四個階段，共 16 格，依時間順序，每個階段 4 格：準備 → 做出動作 → 動作最大 → 慢慢回到起始姿勢。
+每一格只比前一格改變一點點，姿勢要連續。第 16 格要自然接回第 1 格。
+先用簡短文字說明，不生圖。</pre>
+<button class="copy">複製</button><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>我看過 16 格的安排</li></ul></div>
+</section>
+<section class="card" id="c09">
+<span class="pill must">必做</span><span class="pill num">09</span>
+<h3>交接包：給 Gemini 的完整提示詞</h3>
+<p class="goal"><b>目標：</b>把需要的東西打包，帶去另一個 AI。</p><p class="note">Gemini 看不到你和 ChatGPT 的對話，所以不能說「照剛才」。要把母圖、特徵、動作、規格一起帶過去。</p><ol class="steps"><li>貼下面這段給 ChatGPT（固定規格已經寫在裡面，要它逐字放進去）</li><li>它會輸出一份完整提示詞，整份複製下來</li><li>確認有逐字放入規格，而且色名與色碼是你母圖的顏色</li></ol><pre class="prompt">請把到目前為止確定的內容，整合成一份我可以貼給另一個 AI（Gemini）的完整提示詞。我會同時附上角色參考圖。
+這份提示詞必須包含：
+1. 角色外觀描述與三項一定要保留的特徵。
+2. 剛剛確認的動作與 16 格的時間順序。
+3. 下面這段規格，請逐字放進去，不要改寫、不要刪減；只有「（色名與色碼）」這一處，請改成母圖背景實際使用的色名與色碼（例如：純綠色 #00FF00）：
+「輸出一張 4 欄×4 列、共 16 格的動畫分格圖，每列由左到右、再由上到下排列。每格尺寸相同，整張圖從左上角均分成 16 個相同大小的區域，不加外框或格間溝槽，不畫格線、編號或文字。每格內角色四周至少留 15% 的空白，耳朵、尾巴完整留在自己的格內，不碰格子邊緣。角色在每格維持相同尺度、固定鏡頭、腳底在同一水平線。除指定動作外，外觀、顏色、光線不變，保留角色原本配色。角色外輪廓清楚、連續且稍厚，避免細碎毛絲與針狀小鱗片；翅膀尖、尾尖（若有）保留足夠厚度，不做細到一兩個像素的末端；身體內部可以精緻，外緣用乾淨的色塊收邊。背景使用均勻純色（色名與色碼），每格背景一致，不要漸層、紋理、地面陰影或背景色的反光；背景色必須與角色主要顏色明顯不同，角色身上不要出現背景色。這是同一個角色的一段連續小動作，不是 16 個不同角色或造型。」
+4. 說明附圖只當外觀參考，不要沿用附圖的姿勢與構圖，所有格子重新畫。
+只輸出這份提示詞，不要加任何說明。</pre>
+<button class="copy">複製</button><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>規格有逐字放入</li><li>色名與色碼是我母圖的顏色</li></ul></div>
+</section>
+<section class="card" id="c10">
+<span class="pill must">必做</span><span class="pill num">10</span>
+<h3>Gemini 生 16 格</h3>
+<p class="goal"><b>目標：</b>得到一張 4×4 的 16 格動作圖。</p><ol class="steps"><li>打開 Gemini，新對話</li><li>先上傳母圖（01_character.png），看到縮圖</li><li>貼上 ChatGPT 給你的完整提示詞，送出</li><li>等它畫，不要連續重畫</li><li>點開原圖下載，存成 <b>02_sprite_16.png</b></li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>真的是 4 欄 4 列</li><li>沒有貼邊</li><li>角色大小一致</li><li>動作一格一格慢慢改變，第 16 格接得回第 1 格</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>有小瑕疵：先別急著修，做出 GIF 看看，再決定要不要修。</li></ul></div>
+</section>
+<section class="card" id="c11">
+<span class="pill must">必做</span><span class="pill num">11</span>
+<h3>Ezgif 切圖</h3>
+<p class="goal"><b>目標：</b>把 16 格圖切成 16 張。</p><p class="note">Ezgif 的功能在上方分類下：切圖 Split、做動畫 GIF、去背 Effects。</p><table class="tb"><tr><th>要做什麼</th><th>路徑</th></tr><tr><td>切圖</td><td>Split → Sprite sheet cutter　<a href="https://ezgif.com/sprite-cutter" target="_blank" rel="noopener">直接開啟</a></td></tr><tr><td>做 GIF</td><td>GIF → GIF maker　<a href="https://ezgif.com/maker" target="_blank" rel="noopener">直接開啟</a></td></tr><tr><td>去背</td><td>Effects → Remove background　<a href="https://ezgif.com/remove-background" target="_blank" rel="noopener">直接開啟</a></td></tr></table><ol class="steps"><li>上傳你之前存的 16 格圖（02_sprite_16.png）</li><li>勾選 <b>By number of columns / rows</b></li><li>Columns 填 <b>4</b>，Rows 填 <b>4</b></li><li>Offset、Spacing 保持 <b>0</b></li><li>按 Cut，檢查裁切結果</li><li>沒問題，按下方的 <b>Create GIF</b>；有問題，回前一頁檢查圖片</li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>沒有切到角色</li><li>沒有鄰格殘影</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>切成細條或格數不對：先確認選的是「By number of columns / rows」，Columns、Rows 都填 4，Offset、Spacing 都是 0；再確認上傳的是完整的 4×4 分格圖。</li><li>要是圖片本身的問題（例如多出的殘格），做 GIF 時把不要的殘格 Skip 掉，看第 12 張卡。</li></ul></div>
+</section>
+<section class="card" id="c12">
+<span class="pill must">必做</span><span class="pill num">12</span>
+<h3>做成 GIF</h3>
+<p class="goal"><b>目標：</b>得到會動的 idle.gif。</p><ol class="steps"><li>確認有 16 張，順序正確</li><li>Delay time <b>維持 20</b>（畫面上本來就是 20，等於 0.2 秒一格），不用改</li><li>檢查格子之間有沒有多餘的格子；不要的影格按 <b>Skip</b>（只跳過確認多出的空白格，不要隨意刪除正常的過渡影格；角色旁邊出現鄰格的耳朵、尾巴或色塊，是原圖的問題，Skip 修不好，要回頭檢查原圖）</li><li>Loop count 空白，Crossfade 不開</li><li>按 <b>Make a GIF!</b>，連看三輪，特別看最後接回第一格</li><li>滿意就按右下角的<b>磁碟片圖示（Save）</b>，存到「AI角色作品」，改名 <b>idle.gif</b></li></ol><p class="note">資料夾名稱可以改成你喜歡的。檔名請用 idle.gif（全小寫），之後的網頁靠檔名找圖。太慢把 Delay 降到 15 或 10，太快就升高。</p><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>GIF 會動</li><li>結尾接得回開頭</li><li>檔名是 idle.gif</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>格子之間有多餘的格子：把那一格 Skip。用 ChatGPT 直接出圖，邊緣比較容易被切出殘格；Gemini 比較少。</li><li>動作看起來少了一段：你可能 Skip 掉了正常的過渡影格，把它重新啟用。</li></ul></div>
+</section>
+<section class="card" id="c13">
+<span class="pill must">必做</span><span class="pill num">13</span>
+<h3>動畫不順，怎麼修？</h3>
+<p class="goal"><b>目標：</b>看出哪裡不順，用文字修好，重新生成。</p><ol class="steps"><li>播放自己的 GIF，找出哪裡不順（第幾格到第幾格）</li><li>用文字描述問題：現在發生什麼、希望變成什麼</li><li>貼下面這段給 ChatGPT，括號換成你看到的狀況，得到新的完整提示詞</li><li>開 Gemini <b>新對話</b>，<b>只帶原始母圖</b>，貼新提示詞重新生成</li></ol><pre class="prompt">我看了做出來的動畫，發現的問題是：第（N）格到第（N+1）格，（現在發生什麼）。我希望變成（想要的樣子）。請只修改動作規格中對應的部分，其他格、角色外觀與固定規格保持不變，然後重新輸出一份給 Gemini 的完整提示詞：規格逐字放入，不要用「照剛才」這類依賴舊對話的說法。只輸出提示詞，不要加說明。</pre>
+<button class="copy">複製</button><p class="note">不要把壞掉的分格圖再丟給 Gemini 當參考，帶著壞圖，容易把問題一起保留下來。沒有明顯問題就直接去背。</p><p class="lab">改了好幾次以後，合併成一份新的提示詞</p><pre class="prompt">請把我們到目前為止所有的修改合併成一份新的完整提示詞，我會貼到新的對話一次生成。只保留最後確認的要求，刪除已被取代或互相矛盾的指令；完整寫出角色特徵、動作順序、背景與分格規格，不要使用「照剛才」等依賴舊對話的說法。只輸出提示詞，不要重畫。</pre>
+<button class="copy">複製</button><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>整段動作都不成立：換一個更簡單的動作，保留外觀重排。</li></ul></div>
+</section>
+<h2 class="sec" id="s3">去背</h2>
+<section class="card" id="c14">
+<span class="pill must">必做</span><span class="pill num">14</span>
+<h3>去背：把背景色變透明</h3>
+<p class="goal"><b>目標：</b>讓角色站在舞台上，不帶有色方框。</p><ol class="steps"><li>上方「Effects」→「Remove background」</li><li>勾選 <b>custom (HEX)</b>，填你的去背色色碼（綠色 #00FF00、洋紅 #FF00FF）</li><li>勾選 <b>don't stack frames</b></li><li>Fuzz % 先填 <b>25</b></li><li>勾選 <b>clean up edges</b>，pixels 先填 <b>2</b></li><li>按去背，滿意就存成 idle.gif</li></ol><p class="note">色碼：提示詞指定的是目標，AI 畫出來不一定完全相同，實際以圖片背景的顏色為準，Ezgif 通常會自動抓。</p><p class="note">選用：GIF 太大或去背很慢，才先用 Optimizer（Optimize 功能），壓縮率維持原本的數值，不用調。</p><p class="lab">看到什麼，怎麼調（25／2 是這次的起點）</p><table class="tb"><tr><th>看到什麼</th><th>怎麼調</th></tr><tr><td>腳縫還有背景色</td><td>小幅提高 Fuzz，檢查角色顏色是否被誤刪</td></tr><tr><td>角色內部顏色被吃掉</td><td>降低 Fuzz</td></tr><tr><td>外緣還有背景色的邊</td><td>小幅增加清邊 pixels，同時觀察輪廓</td></tr><tr><td>毛尖、尾尖、翅膀變短或消失</td><td>降低清邊 pixels；必要時改用輪廓更厚的素材</td></tr></table><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>背景變成格子狀（透明）</li><li>角色的白色部分還在</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>調很多次還是不好：不要卡住。保留原本的 idle.gif，之後用貼紙框或純色背景，不影響完成作品。</li></ul></div>
+</section>
+<h2 class="sec" id="s4">舞台</h2>
+<section class="card" id="c15">
+<span class="pill must">必做</span><span class="pill num">15</span>
+<h3>請 Claude 做你的舞台</h3>
+<p class="goal"><b>目標：</b>得到一個放進你角色的互動網頁。</p><p class="note">老師的完整版舞台（<a href="https://oathwoven.github.io/magical-playground/character-stage/" target="_blank" rel="noopener">直接開啟</a>）：在網頁裡選 GIF，存在瀏覽器，能匯出備份。今天你們做的簡單版：GIF 放在網頁旁邊，用檔名找（idle.gif、eat.gif、happy.gif）。</p><p class="note">「教師示範方案」是餵食＋摸摸，再加一個功能。想換成充電、鼓勵、澆水都可以，第 17 張卡有換法。</p><p class="lab">二選一：貼給 Claude，把「角色的名字叫＿＿」換成你的角色名字</p><p class="lab">版本 A：喝水紀錄</p><pre class="prompt">請幫我做一個「角色陪伴小舞台」，存成單一 HTML 檔（網頁檔），用瀏覽器直接打開就能用，不需要登入、不需要伺服器。
+角色的名字叫「＿＿」。
+
+【角色圖片】
+- 圖片放在網頁檔的同一個資料夾，檔名固定：idle.gif（待機，一定有）、eat.gif（吃東西）、happy.gif（開心）。
+- eat.gif、happy.gif 不一定有；找不到時一律改用 idle.gif，不要出現破圖。
+- 如果連 idle.gif 都找不到，畫面中央顯示文字「找不到 idle.gif，請確認它和網頁檔放在同一個資料夾，檔名全部小寫」。
+- 圖片放在畫面中央偏下，寬度最多 240 像素，保持比例，不要變形。
+- 圖片是透明背景，不要加外框或底色。
+
+【畫面】
+- 柔和的米色漸層背景，角色名字用大字放在上方。
+- 字體和按鈕都要大，手機與電腦都好按。
+
+【動作播放時間】
+- 把動作播放時間集中設成一個可以調整的數值，預設 3.2 秒（16 格 × 0.2 秒 = 一輪）。播放完要回到 idle.gif，不要在動作中途被切斷。之後我會依實際 GIF 的長度調整這個數值。
+
+【互動 1：餵食】
+- 有一個「餵食」按鈕。按下去，一個食物表情符號從上方掉到角色旁，角色換成 eat.gif 播放一輪並說「好好吃！」，然後回到 idle.gif。
+- 連續按很多次也不要壞掉，不要留下沒用的食物。
+
+【互動 2：摸摸】
+- 點角色，或按「摸摸」按鈕：角色跳一下、飄出愛心、說一句話（三句輪流：「嗨，今天也一起加油！」「我在這裡陪你～」「再摸一下嘛！」），並換成 happy.gif 播放一輪，然後回到 idle.gif。
+
+【功能：喝水紀錄】
+- 顯示今天喝了幾杯，有「喝了一杯」和「歸零」按鈕。
+- 目標杯數用下拉選單自己設定（4 到 12 杯），預設 8。
+- 紀錄存在瀏覽器裡，重新整理不會消失；隔天自動從 0 重新計算。
+- 這是生活紀錄小工具，不要寫成健康建議。
+
+先做最簡單可用的版本，不要加我沒有要求的功能。完成後，告訴我要把哪些檔案放在同一個資料夾。</pre>
+<button class="copy">複製</button><p class="lab">版本 B：專注計時</p><pre class="prompt">請幫我做一個「角色陪伴小舞台」，存成單一 HTML 檔（網頁檔），用瀏覽器直接打開就能用，不需要登入、不需要伺服器。
+角色的名字叫「＿＿」。
+
+【角色圖片】
+- 圖片放在網頁檔的同一個資料夾，檔名固定：idle.gif（待機，一定有）、eat.gif（吃東西）、happy.gif（開心）。
+- eat.gif、happy.gif 不一定有；找不到時一律改用 idle.gif，不要出現破圖。
+- 如果連 idle.gif 都找不到，畫面中央顯示文字「找不到 idle.gif，請確認它和網頁檔放在同一個資料夾，檔名全部小寫」。
+- 圖片放在畫面中央偏下，寬度最多 240 像素，保持比例，不要變形。
+- 圖片是透明背景，不要加外框或底色。
+
+【畫面】
+- 柔和的米色漸層背景，角色名字用大字放在上方。
+- 字體和按鈕都要大，手機與電腦都好按。
+
+【動作播放時間】
+- 把動作播放時間集中設成一個可以調整的數值，預設 3.2 秒（16 格 × 0.2 秒 = 一輪）。播放完要回到 idle.gif，不要在動作中途被切斷。之後我會依實際 GIF 的長度調整這個數值。
+
+【互動 1：餵食】
+- 有一個「餵食」按鈕。按下去，一個食物表情符號從上方掉到角色旁，角色換成 eat.gif 播放一輪並說「好好吃！」，然後回到 idle.gif。
+- 連續按很多次也不要壞掉，不要留下沒用的食物。
+
+【互動 2：摸摸】
+- 點角色，或按「摸摸」按鈕：角色跳一下、飄出愛心、說一句話（三句輪流：「嗨，今天也一起加油！」「我在這裡陪你～」「再摸一下嘛！」），並換成 happy.gif 播放一輪，然後回到 idle.gif。
+
+【功能：專注陪伴】
+- 可輸入分鐘數（1 到 180），按「開始專注」倒數，也可以按「停止」。
+- 倒數要用「結束時間」計算，切到別的分頁再回來，剩餘時間也要正確。
+- 時間到時，角色開心並說「專注完成，你好棒！」，只獎勵一次。
+- 輸入空白、負數或太大的數字時，要顯示提示。
+- 畫面上註明：這只是計時陪伴，不會鎖住手機。
+
+先做最簡單可用的版本，不要加我沒有要求的功能。完成後，告訴我要把哪些檔案放在同一個資料夾。</pre>
+<button class="copy">複製</button><p class="note">Claude 預覽裡看不到你的角色，因為 GIF 在你的電腦裡，下載後才看得到。</p><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>做出來有問題：把畫面截圖貼給 Claude，說「我想要＿＿，請告訴我怎麼改」。</li></ul></div>
+</section>
+<section class="card" id="c16">
+<span class="pill must">必做</span><span class="pill num">16</span>
+<h3>放進你的角色，打開看看</h3>
+<p class="goal"><b>目標：</b>在自己電腦上看到角色動起來。</p><ol class="steps"><li>下載網頁檔，改名 <b>index.html</b></li><li>放進「AI角色作品」，旁邊要有 <b>idle.gif</b>（有 eat.gif、happy.gif 也一起放）</li><li>檔名全部小寫，不要有空格和中文</li><li>雙擊 index.html，用瀏覽器打開</li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>看到自己的角色在動</li><li>餵食、摸摸有反應</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>看到「找不到 idle.gif」：檔名、大小寫、是不是多了 .gif.gif、有沒有放在同一個資料夾。</li><li>動作被切掉或拖太久：回 Claude 說「把動作播放時間改成＿秒」。</li><li>去背失敗、GIF 有底色：看第 17 張卡的貼紙框。</li></ul></div>
+</section>
+<section class="card" id="c17">
+<span class="pill plus">加碼</span><span class="pill num">17</span>
+<h3>想改成別的互動，或再加功能</h3>
+<p class="goal"><b>目標：</b>一次只改一處，改壞了就回到上一版。</p><p class="note"><b>檔名規則（防呆）：</b>網頁只會去找它被告知的檔名。<b>idle.gif 一定要有</b>，eat.gif、happy.gif 沒有就用 idle.gif（這是因為提示詞已經要求 Claude 這樣做；自己改提示詞時，請保留「找不到時改用 idle.gif」那一句）。想加新動作（例如睡覺 sleep.gif），就要在提示詞裡告訴 Claude 檔名，下面「新增按鈕」就是範例。檔名請用英文小寫，做好之後不要隨便改名，改了網頁就找不到。</p><p class="lab">把「餵食」換成別的互動</p><pre class="prompt">請保留目前所有功能，只把「餵食」互動改成「＿＿」（例：澆水／充電／鼓勵）：按下去，畫面出現對應的小動畫或表情符號，角色換成 eat.gif 播放一輪（使用同一個可調整的播放時間）並說一句相符的話，然後回到 idle.gif。其他部分請不要更動。</pre>
+<button class="copy">複製</button><p class="lab">改背景</p><pre class="prompt">請保留目前所有功能，只把背景改成（夜空／草地／小房間），其他部分請不要更動。</pre>
+<button class="copy">複製</button><p class="lab">新增一個按鈕</p><pre class="prompt">請保留目前所有功能，新增一個「休息」按鈕：按下去畫面變暗、飄出 Zzz，5 秒後醒來。如果有 sleep.gif 就換成它，沒有就用 idle.gif。其他部分請不要更動。</pre>
+<button class="copy">複製</button><p class="lab">去背失敗、GIF 有底色：貼紙框</p><pre class="prompt">我的 GIF 有底色，請保留目前所有功能，只幫角色圖片加上白色粗邊框和圓角，像貼紙一樣，其他部分請不要更動。</pre>
+<button class="copy">複製</button><p class="note">滿意的版本先另存。</p>
+</section>
+<h2 class="sec" id="s5">網址</h2>
+<section class="card" id="c18">
+<span class="pill must">必做</span><span class="pill num">18</span>
+<h3>GitHub 帳號（沒有才需要）</h3>
+<p class="goal"><b>目標：</b>有一個可以放網頁的帳號。</p><ol class="steps"><li>打開 github.com，按「Sign up」，可以用 Gmail</li><li>取使用者名稱：會出現在網址裡，取你願意公開的名字</li><li>到信箱收驗證碼，輸入完成</li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>我可以登入 GitHub</li></ul></div>
+</section>
+<section class="card" id="c19">
+<span class="pill must">必做</span><span class="pill num">19</span>
+<h3>建立儲存庫並上傳</h3>
+<p class="goal"><b>目標：</b>把網頁放上 GitHub。</p><p class="note">重要：儲存庫是 <b>Public</b>，上傳的 GIF 別人也看得到。不想公開 GIF 就不要上傳，改在自己電腦打開 index.html 使用。</p><ol class="steps"><li>右上角「＋」→「New repository」</li><li>Repository name：全小寫英文（例：pet），選 <b>Public</b>，按 Create repository</li><li>按「uploading an existing file」</li><li>把 <b>index.html、idle.gif（和 eat.gif、happy.gif）</b>一起拖進去</li><li>上傳完，按綠色「Commit changes」</li></ol><p class="note">網頁和 GIF 要一起上傳。只傳 index.html，網址只會看到「找不到 idle.gif」。新作品請建新的儲存庫，不要蓋掉舊的。</p><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>儲存庫裡看得到 index.html 和 GIF</li></ul></div>
+</section>
+<section class="card" id="c20">
+<span class="pill must">必做</span><span class="pill num">20</span>
+<h3>開啟 Pages，拿到網址</h3>
+<p class="goal"><b>目標：</b>得到你的網址。</p><ol class="steps"><li>進入儲存庫，上方「Settings」</li><li>左邊選「Pages」</li><li>Source 選 <b>Deploy from a branch</b></li><li>Branch 選 <b>main</b>，資料夾 <b>/ (root)</b>，按 Save</li><li>等待：通常 1～2 分鐘，有時要幾分鐘，偶爾更久（約十分鐘）</li><li>沒出現網址：重新整理頁面</li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>拿到網址</li><li>用網址打開，看到角色在動</li><li>把網址傳給自己存起來</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>404：再等一下，重新整理，確認 Pages 有存檔、檔名是 index.html。</li><li>角色沒出現：檢查 GIF 有沒有上傳、檔名是否全小寫。</li><li>卡住：把畫面截圖貼給 Claude（先遮住密碼和驗證碼），說「我想要完成＿＿，請告訴我下一步要按哪裡」。</li></ul></div>
+</section>
+<h2 class="sec" id="s6">手機圖示</h2>
+<section class="card" id="c21">
+<span class="pill plus">加碼</span><span class="pill num">21</span>
+<h3>做一張圖示</h3>
+<p class="goal"><b>目標：</b>得到一張直角、鋪滿的正方形圖示。</p><ul class="steps"><li><b>要</b>：直角正方形、鋪滿四邊、不透明、頭部臉清楚、重要細節離四個角遠</li><li><b>不要</b>：圓角、邊框陰影、白邊、手機模型、太小的字</li></ul><p class="lab">同一個對話才需要這句</p><pre class="prompt">現在切換成新任務：製作手機圖示。先前的動畫規格不再套用，請只依照下面的新要求。</pre>
+<button class="copy">複製</button><p class="lab">附上母圖，貼這段（背景顏色、符號可以自己換）</p><pre class="prompt">請依照附圖角色，製作一枚直角正方形、鋪滿畫面、不透明的手機主畫面圖示。
+保留角色原本的外觀特徵與風格。
+以角色頭部與上半身為主，臉和眼睛清楚，占畫面主要面積，縮小後仍能辨識。
+背景使用淺藍色，鋪滿畫布四邊，不留白邊，不做透明背景。
+畫面是完整的直角正方形，四個角都是直角：不要圓角、不要邊框、不要陰影外框。
+右下方放一個簡單清楚的相機符號，不遮住角色的眼睛。
+不要手機模型、不要整頁桌面、不要文字或多枚圖示。
+重要細節離四個角遠一點。</pre>
+<button class="copy">複製</button><p class="note">縮小檢查：認得出角色嗎？存成 04_icon.png。</p><p class="lab">AI 畫成圓角或加邊框（常常發生）</p><pre class="prompt">請把這張圖改成完整的直角正方形，四個角都不要圓角、不要邊框，背景鋪滿到四邊，其他部分保持不變。</pre>
+<button class="copy">複製</button>
+</section>
+<section class="card" id="c22">
+<span class="pill plus">加碼</span><span class="pill num">22</span>
+<h3>iPhone：捷徑</h3>
+<p class="goal"><b>目標：</b>桌面多一個自己的圖示，打開相機。</p><p class="note">這個做法是新增一個入口，不會取代或刪除原本的相機。</p><ol class="steps"><li>開「捷徑」App，按「＋」新增</li><li>搜尋動作「打開 App」並加入</li><li>點動作裡的「App」欄位，選「相機」</li><li>把捷徑名稱改成「相機」，按播放測試</li><li>找到「加入主畫面」</li><li>在「主畫面名稱和圖像」點圖片，選你的圖示，保留整張</li><li>確認名稱，按「加入」，回桌面再點一次</li></ol><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>桌面有自己的圖示</li><li>點下去會打開相機</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>找不到要打開的 App：回編輯畫面，確認「App」欄位選了相機。</li><li>桌面有兩個相機：保留新的入口。</li></ul></div>
+</section>
+<section class="card" id="c23">
+<span class="pill plus">加碼</span><span class="pill num">23</span>
+<h3>Android：Shortcut Maker</h3>
+<p class="goal"><b>目標：</b>桌面多一個自己的圖示。</p><ol class="steps"><li>到 Play 商店下載 <b>Shortcut Maker</b></li><li>打開 App，選要開的 App（例：相機）</li><li>按「Icon」</li><li>選「Gallery Image」</li><li>選你的圖示圖，自己調整大小，按「Done」</li><li>名稱可以改（選做，建議英文）</li><li>按「Create Shortcut」</li><li>跳出視窗，按「Got it」</li></ol><p class="note">不同手機的確認視窗字樣可能略有不同，找長得像的按鈕。</p><div class="chk"><p class="lab">完成檢查</p><ul class="steps"><li>桌面有自己的圖示</li><li>點下去會打開指定的 App</li></ul></div><div class="stuck"><p class="lab">卡住了？</p><ul class="steps"><li>圖片有白邊、不小心畫成圓角，或角色太小看不清楚：回去請 AI 幫你調整原圖。</li></ul></div>
+</section>
+<h2 class="sec" id="s7">帶回家</h2>
+<section class="card" id="c24">
+<span class="pill must">必做</span><span class="pill num">24</span>
+<h3>今天做出的東西，和下一步</h3>
+<p class="goal"><b>目標：</b>把資料整理好，回家可以接著做。</p><p class="lab">資料夾裡應該有</p><ul class="steps"><li>01_character.png　角色母圖</li><li>02_sprite_16.png　16 格圖</li><li>idle.gif（及其他 GIF）</li><li>index.html　互動舞台</li><li>04_icon.png　圖示（有做的話）</li><li>記事本：角色設定、動作規格、好用的提示詞</li><li>你的網址</li><li>（用老師完整版的人）JSON 備份檔：自己保存，不要上傳公開儲存庫</li></ul><p class="lab">回家練習，二選一</p><ul class="steps"><li><b>A 第二個動作</b>：同一個角色做 eat.gif。簡單版：放在 index.html 旁邊，重新上傳 GitHub；完整版：在網頁裡載入，再匯出新的備份。</li><li><b>B 改你的舞台</b>：換場景、改台詞，或加一個新按鈕，一次只改一處。</li></ul><p class="note">沒做完的步驟，照前面的卡片回家接續就好。</p>
+</section>
+<h2 class="sec" id="s8">備案</h2>
+<section class="card" id="c25">
+<span class="pill bak">備案</span><span class="pill num">25</span>
+<h3>額度不夠，或卡住的時候</h3>
+<table class="tb"><tr><th>狀況</th><th>怎麼辦</th></tr><tr><td>ChatGPT 額度用完</td><td>直接換 Gemini，母圖和交接包照樣帶過去</td></tr><tr><td>Gemini 也沒額度</td><td>用老師課堂上給你的素材：母圖和 16 格圖，自己做切圖、GIF、去背，後面一樣</td></tr><tr><td>Claude 額度不夠</td><td>用老師的完整版舞台（<a href="https://oathwoven.github.io/magical-playground/character-stage/" target="_blank" rel="noopener">直接開啟</a>）：在網頁裡選自己的 GIF，存在瀏覽器；換裝置要重新選檔，或用「匯出備份」再「匯入備份」</td></tr></table><p class="lab">常見問題</p><table class="tb"><tr><th>狀況</th><th>先檢查</th></tr><tr><td>角色變形、忽大忽小</td><td>來源圖就不一致，改速度沒用，要重畫</td></tr><tr><td>格子切錯</td><td>Columns／Rows 是否 4、4；Offset／Spacing 是否 0</td></tr><tr><td>GIF 有底色</td><td>做去背；失敗就用貼紙框</td></tr><tr><td>去背吃掉白毛</td><td>降低 Fuzz；背景色要和角色主要顏色明顯不同</td></tr><tr><td>舞台沒有角色</td><td>檔名全小寫、同資料夾、沒有 .gif.gif、GitHub 有上傳 GIF</td></tr><tr><td>換手機後角色不見</td><td>簡單版：GIF 要和 index.html 一起上傳；老師完整版：重新選檔或匯入備份</td></tr></table>
+</section>
+<p class="sub" style="margin-top:32px;font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif;font-size:24px">一個會動的角色，就是很棒的開始。</p>
+<footer>OathWoven × Sylas｜互動陪伴小工具　學員小卡</footer>
+</main>
+<script>
+(function(){
+  function fallbackCopy(text){
+    var ta=document.createElement('textarea');
+    ta.value=text;ta.setAttribute('readonly','');
+    ta.style.position='fixed';ta.style.top='0';ta.style.left='0';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,text.length);
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);return ok;
+  }
+  function flash(btn,ok){
+    var old=btn.getAttribute('data-label')||btn.textContent;
+    btn.setAttribute('data-label',old);
+    btn.textContent=ok?'已複製 ✓':'請長按文字手動複製';
+    if(ok)btn.classList.add('done');
+    setTimeout(function(){btn.textContent=old;btn.classList.remove('done');},1800);
+  }
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var box=btn.previousElementSibling;
+      while(box&&!box.classList.contains('prompt'))box=box.previousElementSibling;
+      if(!box)return;
+      var text=box.textContent;
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){flash(btn,true);},function(){flash(btn,fallbackCopy(text));});
+      }else{flash(btn,fallbackCopy(text));}
+    });
+  });
+})();
+</script>
+</body>
+</html>

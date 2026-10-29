@@ -108,7 +108,8 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <p class="tip">只需一張「待機」圖片或 GIF 就能開始；其他動作可以之後慢慢補齊。想換新的：再選一次同狀態的檔案就會取代（待機也一樣，不用清除資料）。</p>
 <div class="row" style="margin-top:12px">
 <div class="grow"><p class="lab">一次選全部（可多選）</p><input type="file" id="fAll" accept="image/*" multiple>
-<p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。想多放幾個待機動作，可以放好幾個檔名含「待機」的檔案（最多 4 個），待機時會輪流換著演。GIF、WebP、PNG 都可以。</p></div>
+<p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。想多放幾個待機動作，可以放好幾個檔名含「待機」的檔案（最多 4 個），待機時會輪流換著演。GIF、WebP、PNG 都可以。</p>
+<button type="button" class="btn alt" id="bClearPreset" hidden style="margin-top:8px">🧹 清掉內建小龍，換成我自己的角色</button></div>
 </div>
 <details style="margin-top:10px"><summary style="font-size:16px">或一個一個選（七種狀態）</summary><div id="slots" class="row" style="margin-top:10px"></div></details>
 <div id="loaded" class="note"></div>
@@ -431,9 +432,24 @@ async function setAsset(state,blob,name){
   if(started)applyState(true);
   return true;
 }
+const presetKeys=new Set(),presetBgIds=new Set();
+function clearPreset(){
+  presetKeys.forEach(k=>{if(urls[k]&&!store[k]){URL.revokeObjectURL(urls[k]);delete urls[k];delete meta[k]}});
+  presetKeys.clear();
+  [...presetBgIds].forEach(id=>{if(!store[bgKey(id)]){const i=bgs.findIndex(b=>b.id===id);if(i>=0){URL.revokeObjectURL(bgs[i].url);bgs.splice(i,1)}}});
+  presetBgIds.clear();
+  if(!bgs.some(b=>b.id===bgCur))bgCur=bgs[0]?bgs[0].id:null;
+  if(!bgs.length&&$('scene').value==='custom')$('scene').value='room';
+  lsSet('stage_preset_off','1');
+  $('bClearPreset').hidden=true;
+  renderLoaded();renderBgList();applyScene();saveSettings();if(started)applyState(true);
+}
 async function addFile(state,file){
+  if(state==='idle'&&presetKeys.size>1&&presetKeys.has('idle')){
+    if(await ask('你要換成自己的角色嗎？內建小龍的其他動作（走路、吃東西…）要不要一起換掉？不換的話，沒補的動作還是會顯示小龍。','一起換掉'))clearPreset();
+  }
   const ok=await setAsset(state,file,file.name);
-  if(ok){
+  if(ok){presetKeys.delete(state);
     const buf=await file.arrayBuffer();
     await persist(state,{buf:buf,type:file.type||'image/gif',name:file.name});
   }
@@ -1081,18 +1097,19 @@ $('bWipe').addEventListener('click',async()=>{
 /* ================= 私房預設（網址帶 ?preset=名稱 才會載入；沒帶就完全不影響） ================= */
 async function loadPreset(){
   const name=(new URLSearchParams(location.search).get('preset')||'').replace(/[^a-z0-9_-]/gi,'');
-  if(!name)return;
+  if(!name||lsGet('stage_preset_off')==='1')return;
   try{
     const base='presets/'+name+'/',mf=await (await fetch(base+'manifest.json')).json();
     const firstVisit=!lsGet('stage_settings');
     const keys=Object.keys(mf.states||{}).filter(k=>SLOTS.some(s=>s[0]===k)&&!urls[k]);
-    const one=async k=>{try{const r=await fetch(base+mf.states[k]);if(!r.ok)return;await setAsset(k,await r.blob(),(ZH[k]||k)+'（內建）')}catch(e){}};
+    const one=async k=>{try{const r=await fetch(base+mf.states[k]);if(!r.ok)return;if(await setAsset(k,await r.blob(),(ZH[k]||k)+'（內建）'))presetKeys.add(k)}catch(e){}};
     if(keys.includes('idle'))await one('idle');
     await Promise.all(keys.filter(k=>k!=='idle').map(one));
     if(!bgs.length&&mf.bgs&&mf.bgs.length){
-      for(let i=0;i<mf.bgs.length;i++){try{const r=await fetch(base+mf.bgs[i].f);if(!r.ok)continue;await addBg(await r.blob(),mf.bgs[i].n,'p'+(i+1))}catch(e){}}
+      for(let i=0;i<mf.bgs.length;i++){try{const r=await fetch(base+mf.bgs[i].f);if(!r.ok)continue;const be=await addBg(await r.blob(),mf.bgs[i].n,'p'+(i+1));if(be)presetBgIds.add(be.id)}catch(e){}}
       if(bgs.length){bgCur=bgs[0].id;if(firstVisit){$('scene').value='custom'}renderBgList();applyScene()}
     }
+    $('bClearPreset').hidden=!presetKeys.size;
     if(firstVisit){
       if(mf.name)$('nameIn').value=mf.name;
       if(mf.bgAuto&&[...$('bgAuto').options].some(x=>x.value===String(mf.bgAuto)))$('bgAuto').value=String(mf.bgAuto);
@@ -1100,6 +1117,8 @@ async function loadPreset(){
     }
   }catch(e){}
 }
+
+$('bClearPreset').addEventListener('click',async()=>{if(await ask('要把內建的小龍和背景都清掉嗎？清掉後請在上面放入你自己的角色。（備份、你自己上傳的不受影響）','清掉'))clearPreset()});
 
 /* ================= boot ================= */
 async function boot(){

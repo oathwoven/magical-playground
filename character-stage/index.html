@@ -111,6 +111,12 @@ body.hang main>*:not(#stage){display:none!important}
 body.hang main{max-width:none;padding:0}
 body.hang #stage{aspect-ratio:auto;width:100vw;height:100vh;height:100dvh;max-height:none;border:0;border-radius:0}
 body.hang #lightBtns{opacity:0;pointer-events:none}
+.item{width:calc(56px*var(--k,1));height:calc(56px*var(--k,1))}
+.item .glyph{font-size:calc(50px*var(--k,1))}
+.item svg{width:calc(56px*var(--k,1));height:calc(56px*var(--k,1))}
+.falling{font-size:calc(48px*var(--k,1))}
+.fx{font-size:calc(26px*var(--k,1))}
+#bubble{font-size:calc(16px*var(--k,1))}
 body.hang #lightBtns.show{opacity:1;pointer-events:auto}
 </style>
 </head>
@@ -307,6 +313,8 @@ function pickIdle(avoid){const v=idleVariants();if(!v.length)return 'idle';const
 
 const rand=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let K=1,baseW=0;
+function applyK(){stage.style.setProperty('--k',K);pet.style.width=($('size').value*K)+'px'}
 const W=()=>stage.clientWidth, PW=()=>pet.offsetWidth||150;
 let viewTop=false;
 const YMAX=()=>viewTop?Math.max(60,stage.clientHeight-PW()*0.9-24):Math.min(120,stage.clientHeight*0.3);
@@ -404,7 +412,7 @@ function applySettings(o){
   if(o.bgCur&&bgs.some(b=>b.id===o.bgCur))bgCur=o.bgCur;
   ['walkSpd','chat','restTime','wakeMode','autoSleep','roam'].forEach(k=>{if(o[k]!=null&&[...$(k).options].some(x=>x.value===String(o[k])))$(k).value=String(o[k])});
   viewTop=($('view').value==='top');
-  pet.style.width=$('size').value+'px';$('name').textContent=$('nameIn').value;
+  applyK();$('name').textContent=$('nameIn').value;
 }
 
 /* ================= images ================= */
@@ -603,7 +611,7 @@ $('bgPick').addEventListener('input',()=>{bgManual=true;applyScene();saveSetting
 $('stickerMode').addEventListener('change',()=>{refreshSticker();saveSettings()});
 $('pix').addEventListener('change',()=>{document.body.classList.toggle('pixel',$('pix').checked);saveSettings()});
 $('nameIn').addEventListener('input',()=>{$('name').textContent=$('nameIn').value;saveSettings()});
-$('size').addEventListener('input',()=>{pet.style.width=$('size').value+'px';saveSettings()});
+$('size').addEventListener('input',()=>{applyK();saveSettings()});
 $('lines').addEventListener('input',saveSettings);
 $('foodIn').addEventListener('input',()=>{
   const c=Array.from($('foodIn').value.trim());
@@ -1024,6 +1032,7 @@ document.addEventListener('visibilitychange',()=>{
   else{updateFocus();drawCups()}
 });
 addEventListener('resize',()=>{
+  if(document.body.classList.contains('hang')&&baseW){K=Math.max(1,Math.min(3,stage.clientWidth/baseW));applyK()}
   P.x=clamp(P.x,0,Math.max(0,W()-PW()));P.y=clamp(P.y,0,YMAX());
   if(P.tx!=null)P.tx=clamp(P.tx,0,Math.max(0,W()-PW()));
   items.querySelectorAll('.item').forEach(el=>{el.style.left=clamp(parseFloat(el.style.left)||0,0,Math.max(0,W()-40))+'px'});
@@ -1142,11 +1151,14 @@ $('bClearPreset').addEventListener('click',async()=>{if(await ask('要把內建�
 (function(){
   const B=document.body,bl=$('bLight'),bh=$('bHang'),box=$('lightBtns');let hideT=null;
   function lab(){bl.textContent=B.classList.contains('dark')?'💡 開燈':'💡 關燈';bh.textContent=B.classList.contains('hang')?'↩ 退出掛網':'📺 掛網'}
-  function relayout(){setTimeout(()=>dispatchEvent(new Event('resize')),60)}
+  function relayout(){setTimeout(()=>{if(B.classList.contains('hang')&&baseW){K=Math.max(1,Math.min(3,stage.clientWidth/baseW));applyK()}dispatchEvent(new Event('resize'))},60)}
   function setDark(on){B.classList.toggle('dark',on);try{localStorage.setItem('stage_dark',on?'1':'0')}catch(e){}lab()}
   function showBtns(){box.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>box.classList.remove('show'),4500)}
   function setHang(on){
-    B.classList.toggle('hang',on);box.classList.remove('show');lab();relayout();
+    if(on)baseW=stage.clientWidth;
+    B.classList.toggle('hang',on);box.classList.remove('show');lab();
+    if(!on){K=1;applyK()}
+    relayout();
     if(on){setDark(true);toast('已進入掛網模式。點一下畫面，按鈕會出來。',3500)}
   }
   bl.addEventListener('click',()=>{setDark(!B.classList.contains('dark'));if(B.classList.contains('hang'))showBtns()});

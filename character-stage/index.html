@@ -1021,6 +1021,29 @@ $('bWipe').addEventListener('click',async()=>{
   await wipeMemory();toast('已清除全部資料。');setTimeout(()=>location.reload(),600);
 });
 
+/* ================= 私房預設（網址帶 ?preset=名稱 才會載入；沒帶就完全不影響） ================= */
+async function loadPreset(){
+  const name=(new URLSearchParams(location.search).get('preset')||'').replace(/[^a-z0-9_-]/gi,'');
+  if(!name)return;
+  try{
+    const base='presets/'+name+'/',mf=await (await fetch(base+'manifest.json')).json();
+    const firstVisit=!lsGet('stage_settings');
+    const keys=Object.keys(mf.states||{}).filter(k=>SLOTS.some(s=>s[0]===k)&&!urls[k]);
+    const one=async k=>{try{const r=await fetch(base+mf.states[k]);if(!r.ok)return;await setAsset(k,await r.blob(),(ZH[k]||k)+'（內建）')}catch(e){}};
+    if(keys.includes('idle'))await one('idle');
+    await Promise.all(keys.filter(k=>k!=='idle').map(one));
+    if(!bgs.length&&mf.bgs&&mf.bgs.length){
+      for(let i=0;i<mf.bgs.length;i++){try{const r=await fetch(base+mf.bgs[i].f);if(!r.ok)continue;await addBg(await r.blob(),mf.bgs[i].n,'p'+(i+1))}catch(e){}}
+      if(bgs.length){bgCur=bgs[0].id;if(firstVisit){$('scene').value='custom'}renderBgList();applyScene()}
+    }
+    if(firstVisit){
+      if(mf.name)$('nameIn').value=mf.name;
+      if(mf.bgAuto&&[...$('bgAuto').options].some(x=>x.value===String(mf.bgAuto)))$('bgAuto').value=String(mf.bgAuto);
+      $('name').textContent=$('nameIn').value;
+    }
+  }catch(e){}
+}
+
 /* ================= boot ================= */
 async function boot(){
   try{applySettings(JSON.parse(lsGet('stage_settings')||'null'))}catch(e){}
@@ -1042,6 +1065,7 @@ async function boot(){
     db=null;
     saveStatus('⚠ 這個環境無法保存素材（'+(e&&e.message||e)+'）。重新整理後要重新選檔，請用「匯出備份」留一份。','warn');
   }
+  await loadPreset();
   restoring=false;
 }
 if(FAST)window.__d={addFull:addFull,addMood:addMood,full:()=>full,mood:()=>mood,idleAgo:ms=>{lastInteract=performance.now()-ms},state:()=>stateName,meta:()=>meta,urls:()=>Object.keys(urls),pend:()=>!!pend,items:()=>items.querySelectorAll('.item').length,playN:()=>playN,stickerClass:()=>img.classList.contains('stk'),setFull:v=>{full=v;meters()}};

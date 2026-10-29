@@ -1,0 +1,53 @@
+{
+ "name": "小龍",
+ "states": {
+  "idle": "idle.webp",
+  "idle2": "idle2.webp",
+  "idle3": "idle3.webp",
+  "walk": "walk.webp",
+  "eat": "eat.webp",
+  "happy": "happy.webp",
+  "sleep": "sleep.webp",
+  "hungry": "hungry.webp",
+  "miss": "miss.webp"
+ },
+ "bgs": [
+  {
+   "f": "bg1.jpg",
+   "n": "森林魔法書房"
+  },
+  {
+   "f": "bg2.jpg",
+   "n": "深海"
+  },
+  {
+   "f": "bg3.jpg",
+   "n": "溫室藤蔓魔法陣"
+  },
+  {
+   "f": "bg4.jpg",
+   "n": "星空溫室"
+  },
+  {
+   "f": "bg5.jpg",
+   "n": "書房魔法陣"
+  },
+  {
+   "f": "bg6.jpg",
+   "n": "溫室木地板"
+  },
+  {
+   "f": "bg7.jpg",
+   "n": "紅金房間"
+  },
+  {
+   "f": "bg8.jpg",
+   "n": "草地"
+  },
+  {
+   "f": "bg9.jpg",
+   "n": "星空小龍屋"
+  }
+ ],
+ "bgAuto": "600"
+}

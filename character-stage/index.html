@@ -105,7 +105,9 @@ body.dark .btn,body.dark .tab.on{background:#7b4f31;color:#fff8ee}
 body.dark .btn.alt{background:var(--soft);color:var(--ink)}
 body.dark .tab{background:var(--soft);color:var(--ink)}
 body.dark .btn.danger{background:#a2461f}
-#lightBtns{position:fixed;right:12px;top:12px;z-index:40;display:flex;gap:8px;transition:opacity .4s}
+#lightBtns{position:fixed;right:12px;top:12px;z-index:40;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;max-width:calc(100vw - 24px);transition:opacity .4s}
+#lightBtns .hangOnly{display:none}
+body.hang #lightBtns .hangOnly{display:inline-block}
 #lightBtns button{font:700 15px 'Noto Sans TC',sans-serif;min-height:40px;padding:0 14px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 body.hang main>*:not(#stage){display:none!important}
 body.hang main{max-width:none;padding:0}
@@ -121,7 +123,7 @@ body.hang #lightBtns.show{opacity:1;pointer-events:auto}
 </style>
 </head>
 <body>
-<div id="lightBtns"><button type="button" id="bLight">💡 關燈</button><button type="button" id="bHang">📺 掛網</button></div>
+<div id="lightBtns"><button type="button" class="hangOnly" id="hFeed">🍽️ 餵食</button><button type="button" class="hangOnly" id="hPat">🤚 摸摸</button><button type="button" class="hangOnly" id="hRest">🌙 休息</button><button type="button" id="bLight">💡 關燈</button><button type="button" id="bHang">📺 掛網</button></div>
 <main>
 <h1>我的角色舞台</h1>
 <p class="sub">把你做好的 GIF 放進來，牠就會住在這裡陪你。點舞台任何地方，牠會走過去。</p>
@@ -1153,7 +1155,7 @@ $('bClearPreset').addEventListener('click',async()=>{if(await ask('要把內建�
   function lab(){bl.textContent=B.classList.contains('dark')?'💡 開燈':'💡 關燈';bh.textContent=B.classList.contains('hang')?'↩ 退出掛網':'📺 掛網'}
   function relayout(){setTimeout(()=>{if(B.classList.contains('hang')&&baseW){K=Math.max(1,Math.min(3,stage.clientWidth/baseW));applyK()}dispatchEvent(new Event('resize'))},60)}
   function setDark(on){B.classList.toggle('dark',on);try{localStorage.setItem('stage_dark',on?'1':'0')}catch(e){}lab()}
-  function showBtns(){box.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>box.classList.remove('show'),4500)}
+  function showBtns(){$('hRest').textContent=resting?'☀️ 叫醒':'🌙 休息';box.classList.add('show');clearTimeout(hideT);hideT=setTimeout(()=>box.classList.remove('show'),4500)}
   function setHang(on){
     if(on)baseW=stage.clientWidth;
     B.classList.toggle('hang',on);box.classList.remove('show');lab();
@@ -1163,6 +1165,9 @@ $('bClearPreset').addEventListener('click',async()=>{if(await ask('要把內建�
   }
   bl.addEventListener('click',()=>{setDark(!B.classList.contains('dark'));if(B.classList.contains('hang'))showBtns()});
   bh.addEventListener('click',()=>setHang(!B.classList.contains('hang')));
+  $('hFeed').addEventListener('click',()=>{feed();showBtns()});
+  $('hPat').addEventListener('click',()=>{pat();showBtns()});
+  $('hRest').addEventListener('click',()=>{if(resting)wake();else rest();setTimeout(showBtns,50)});
   stage.addEventListener('pointerdown',()=>{if(B.classList.contains('hang'))showBtns()},true);
   addEventListener('keydown',e=>{if(e.key==='Escape'&&B.classList.contains('hang'))setHang(false)});
   try{if(localStorage.getItem('stage_dark')==='1')B.classList.add('dark')}catch(e){}

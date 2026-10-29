@@ -61,6 +61,8 @@ body.lifting #petImg{cursor:grabbing}
 .bgt.on{border-color:var(--brown);box-shadow:0 0 0 2px var(--brown)}
 .bgt i{position:absolute;right:-8px;top:-8px;width:24px;height:24px;border-radius:50%;background:#a2461f;color:#fff;font:700 14px/24px sans-serif;text-align:center;font-style:normal}
 @keyframes itembounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes numup{0%{opacity:0;transform:translateY(6px) scale(.7)}12%{opacity:1;transform:translateY(-6px) scale(1.25)}65%{opacity:1;transform:translateY(-38px) scale(1)}100%{opacity:0;transform:translateY(-62px) scale(1)}}
+.fx.num{animation:numup 1.4s ease-out forwards;font-size:28px;font-weight:900;text-shadow:0 0 3px #fff,0 0 3px #fff,0 2px 0 #fff;white-space:nowrap;pointer-events:none;z-index:6}
 .fx{position:absolute;font-size:26px;animation:floatup 1.4s ease-out forwards}
 @keyframes floatup{0%{opacity:1;transform:translateY(0) scale(.8)}100%{opacity:0;transform:translateY(-90px) scale(1.2)}}
 .hop{animation:hop .45s ease-out 1}
@@ -310,7 +312,7 @@ const FAST=/fast/.test(location.hash);
 const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:300000, DECAY_MS=FAST?600:90000;
 const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
 const IDLEX=[['idle2','待機 2'],['idle3','待機 3'],['idle4','待機 4']];
-const EXTRA=[['lift','提起來']];
+const EXTRA=[['lift','提起來'],['spicy','吃辣椒'],['angry','生氣']];
 const SLOTS=STATES.concat(IDLEX,EXTRA);
 const ZH={};SLOTS.forEach(s=>ZH[s[0]]=s[1]);
 let idleKey='idle',idleNext=0;
@@ -349,13 +351,16 @@ let lastInteract=performance.now(),eatUntil=0,happyUntil=0,nextSay=0,busyUntil=0
 let resting=false,catching=false,focusing=false,mode='care',keys={};
 let mood=80,full=80,bubbleT=null,zT=null,wakeT=null,playN=0;
 let food='🍙',toy='ball';
+let angry=false,angryUntil=0,spicyUntil=0,chiliLog=[];
+const ANGRY_ON=8,ANGRY_OFF=25;
+const angryOn=()=>angry&&!!urls.angry;
 const drag={on:false,fall:false,vy:0,pid:null,sx:0,sy:0,fx:.5,fy:.3,pend:false,noClick:0};
 const P={x:20,y:0,tx:null,ty:null,cb:null,fast:false,wander:false,dir:1,idle:1.5,phase:0,moving:false};
 let pend=null;   // 目前等待牠走過去處理的食物／玩具
 
 /* ================= meters ================= */
 function meters(){$('mMood').style.width=mood+'%';$('mFull').style.width=full+'%'}
-function addMood(d){mood=clamp(mood+d,0,100);meters()}
+function addMood(d){mood=clamp(mood+d,0,100);meters();checkAngry()}
 function addFull(d){full=clamp(full+d,0,100);meters()}
 meters();
 let decayN=0;
@@ -531,7 +536,8 @@ setInterval(()=>{const sec=parseInt($('bgAuto').value,10)||0;if(!sec||bgs.length
 
 /* 檔名配對：英文要整個單字，中文要完整詞；單字只有在整個檔名剛好等於它時才算 */
 const KEY={idle:{en:['idle'],zh:['待機','待命']},walk:{en:['walk'],zh:['走路','走動']},eat:{en:['eat'],zh:['吃東西','吃飯','進食']},
-  happy:{en:['happy'],zh:['開心','高興']},sleep:{en:['sleep'],zh:['睡覺','睡眠']},hungry:{en:['hungry'],zh:['肚子餓','餓了','飢餓']},miss:{en:['miss','missing'],zh:['想念','思念']},lift:{en:['lift','carry'],zh:['提起','拎起','抱起','拖曳']}};
+  happy:{en:['happy'],zh:['開心','高興']},sleep:{en:['sleep'],zh:['睡覺','睡眠']},hungry:{en:['hungry'],zh:['肚子餓','餓了','飢餓']},miss:{en:['miss','missing'],zh:['想念','思念']},lift:{en:['lift','carry'],zh:['提起','拎起','抱起','拖曳']},
+  spicy:{en:['spicy','chili'],zh:['辣椒','吃辣','好辣']},angry:{en:['angry','mad'],zh:['生氣','發怒','氣氣']}};
 const SINGLE={walk:'走',eat:'吃',sleep:'睡',hungry:'餓',miss:'想'};
 function matchStates(fname){
   const base=fname.replace(/\.[^.]+$/,''),low=base.toLowerCase(),found=[];
@@ -571,7 +577,7 @@ $('fAll').addEventListener('change',async e=>{
 });
 SLOTS.forEach(x=>{
   const d=document.createElement('div');d.className='grow';
-  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':(x[0].indexOf('idle')===0?'（選填，待機時會輪流演）':(x[0]==='lift'?'（選填，用滑鼠按住拖曳角色時演）':'')))+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
+  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':(x[0].indexOf('idle')===0?'（選填，待機時會輪流演）':(x[0]==='lift'?'（選填，用滑鼠按住拖曳角色時演）':(x[0]==='spicy'?'（選填，餵辣椒時演）':(x[0]==='angry'?'（選填，心情很差、或接食物吃到辣椒時演）':'')))))+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.addEventListener('change',async e=>{const f=e.target.files[0];if(f)await addFile(x[0],f);e.target.value=''});
   d.appendChild(inp);
@@ -645,8 +651,10 @@ function desired(){
   const t=performance.now();
   if(drag.on)return 'lift';
   if(resting)return 'sleep';
+  if(t<spicyUntil&&urls.spicy)return 'spicy';
   if(t<eatUntil)return 'eat';
   if(t<happyUntil)return 'happy';
+  if(urls.angry&&(t<angryUntil||angry))return 'angry';
   if(P.moving&&urls.walk)return 'walk';
   if(!catching&&!focusing&&full<30)return 'hungry';
   if(!catching&&!focusing&&t-lastInteract>MISS_MS)return 'miss';
@@ -686,10 +694,27 @@ function happy(ms){happyUntil=performance.now()+(ms||1800)}
 function hop(n){inner.classList.remove('hop','hop3');void inner.offsetWidth;inner.classList.add(n===3?'hop3':'hop');busyUntil=performance.now()+(n===3?1500:500)}
 function petRect(){const s=stage.getBoundingClientRect(),p=img.getBoundingClientRect();return {l:p.left-s.left,t:p.top-s.top,w:p.width,h:p.height,cx:p.left-s.left+p.width/2}}
 function spawnFx(ch,left,top){const s=document.createElement('span');s.className='fx';s.textContent=ch;s.style.left=left+'px';s.style.top=top+'px';fx.appendChild(s);s.addEventListener('animationend',()=>s.remove())}
+function floatNum(text,color,left,top){
+  const e=document.createElement('span');e.className='fx num';e.textContent=text;e.style.left=left+'px';e.style.top=top+'px';e.style.color=color;
+  fx.appendChild(e);e.addEventListener('animationend',()=>e.remove());
+}
+/* 心情掉到最低就生氣：不亂走、先自己去睡；戳醒還是氣，吃東西會開心一下；心情回升到門檻以上才消氣（有放「生氣」圖才會啟用） */
+function checkAngry(){
+  if(!angry&&mood<=ANGRY_ON){angry=true;onAngry()}
+  else if(angry&&mood>=ANGRY_OFF){angry=false;onCalm()}
+}
+function onAngry(){
+  if(!started||!urls.angry)return;
+  if(!pend){P.tx=null;P.cb=null;P.wander=false}
+  if($('chat').value!=='quiet')say('哼！我不理你了！',2200);
+  const wait=Math.max(2800,spicyUntil-performance.now()+600);
+  setTimeout(()=>{if(angryOn()&&!resting&&!catching&&!pend&&!drag.on&&!drag.fall)rest(true)},wait);
+}
+function onCalm(){if(started&&$('chat').value!=='quiet')say('…好啦，不氣了。',2200)}
 function hearts(n){const b=petRect();for(let i=0;i<n;i++)setTimeout(()=>spawnFx('❤️',b.cx-14+rand(-30,30),b.t+10+rand(0,20)),i*120)}
 
 /* ================= movement & interactions ================= */
-function moveOn(){const m=$('moveMode').value;return m==='free'||(m==='auto'&&!!urls.walk)}
+function moveOn(){if(angryOn()&&!catching)return false;const m=$('moveMode').value;return m==='free'||(m==='auto'&&!!urls.walk)}
 function goTo(tx,ty,cb,fast){
   if(!moveOn()){P.tx=null;P.cb=null;P.wander=false;if(cb)setTimeout(cb,550);return}
   P.tx=clamp(tx,0,Math.max(0,W()-PW()));P.ty=clamp(ty,0,YMAX());P.cb=cb||null;P.fast=!!fast;P.wander=false}
@@ -804,7 +829,17 @@ function feed(){
   goTo(so.tx,iy,()=>afterSettle(el,()=>{
     P.dir=so.face;
     pend=null;el.classList.add('pop');setTimeout(()=>el.remove(),500);
-    addFull(18);addMood(key==='🌶'?-4:6);hop(1);eatUntil=performance.now()+1600;happy(2800);hearts(2);say(msg,1800);
+    addFull(18);hop(1);
+    const nowT=performance.now(),pe=petRect();
+    if(key==='🌶'){
+      chiliLog=chiliLog.filter(x=>nowT-x<180000);const pen=4+3*chiliLog.length;chiliLog.push(nowT);
+      floatNum('心情 -'+pen,'#e5484d',pe.cx-34,pe.t-6);
+      if(urls.spicy){spicyUntil=nowT+3200;eatUntil=0}else{eatUntil=nowT+1600;happy(2800)}
+      say(msg,1800);addMood(-pen);
+    }else{
+      angryUntil=0;eatUntil=nowT+1600;happy(2800);hearts(2);say(msg,1800);
+      floatNum('心情 +6','#2a9d5c',pe.cx-34,pe.t-6);addMood(6);
+    }
   }),false);
 }
 function throwToy(ix,iy){
@@ -834,10 +869,11 @@ function rest(auto){
 function wake(msg){
   if(!resting)return;
   resting=false;stage.classList.remove('night');$('bRest').textContent='🌙 休息';clearInterval(zT);clearTimeout(wakeT);
-  say(typeof msg==='string'?msg:'睡飽了！',1800);hop(1);P.idle=1;lastInteract=performance.now();
+  say(angryOn()?'哼…（還在生氣）':(typeof msg==='string'?msg:'睡飽了！'),1800);hop(1);P.idle=1;lastInteract=performance.now();
 }
 let lastLine='',nextChat=performance.now()+rand(40000,80000);
-function pickLine(){const l=lines();let c=l[Math.floor(Math.random()*l.length)];if(l.length>1&&c===lastLine)c=l[(l.indexOf(c)+1)%l.length];lastLine=c;return c}
+const ANGRY_LINES=['哼。','（別過頭）','不想講話。','…辣椒。','不要戳我！'];
+function pickLine(){if(angryOn())return ANGRY_LINES[Math.floor(Math.random()*ANGRY_LINES.length)];const l=lines();let c=l[Math.floor(Math.random()*l.length)];if(l.length>1&&c===lastLine)c=l[(l.indexOf(c)+1)%l.length];lastLine=c;return c}
 function nudgeSleep(){say('Zzz…（睡得好沉）',1100);const b=petRect();spawnFx('💤',b.cx+10,b.t-4)}
 let lazyN=0;
 const LAZY_NO=['再五分鐘…','嗯…不要…','Zzz…（翻身）','好睏喔…','不起來…','（把頭埋進尾巴）','讓我睡嘛…'];
@@ -854,6 +890,7 @@ function disturb(){
 function poke(){
   if(catching)return;
   if(resting){disturb();return}
+  if(angryOn()){say(pick(ANGRY_LINES),2000);addMood(1);hop(1);return}
   say(pickLine(),2400);addMood(3);hop(1);happy(1200);
 }
 function pat(){
@@ -999,7 +1036,9 @@ function stepCatch(dt){
     const it=gItems[i];it.y+=it.vy*dt;it.el.style.top=it.y+'px';
     const cx=it.x+24,cy=it.y+24;
     if(cx>hx0&&cx<hx1&&cy>hy0&&cy<hy1){
-      gScore+=it.bad?-1:(it.fav?3:1);spawnFx(it.bad?'💥':(it.fav?'⭐':'✨'),it.x,it.y-6);if(it.bad)hop(1);
+      gScore+=it.bad?-1:(it.fav?3:1);spawnFx(it.bad?'💥':(it.fav?'⭐':'✨'),it.x,it.y-6);
+      floatNum(it.bad?'-1':(it.fav?'+3':'+1'),it.bad?'#e5484d':(it.fav?'#e0a100':'#2a9d5c'),it.x+22,it.y-26);
+      if(it.bad){hop(1);if(urls.angry)angryUntil=performance.now()+2600}else angryUntil=0;
       it.el.remove();gItems.splice(i,1);
     }else if(it.y>stage.clientHeight){it.el.remove();gItems.splice(i,1)}
   }
@@ -1296,7 +1335,7 @@ async function boot(){
   await loadPreset();
   restoring=false;
 }
-if(FAST)window.__d={addFull:addFull,addMood:addMood,full:()=>full,mood:()=>mood,idleAgo:ms=>{lastInteract=performance.now()-ms},state:()=>stateName,meta:()=>meta,urls:()=>Object.keys(urls),pend:()=>!!pend,items:()=>items.querySelectorAll('.item').length,playN:()=>playN,stickerClass:()=>img.classList.contains('stk'),setFull:v=>{full=v;meters()}};
+if(FAST)window.__d={angry:()=>angry,angryOn:angryOn,resting:()=>resting,poke:poke,addFull:addFull,addMood:addMood,full:()=>full,mood:()=>mood,idleAgo:ms=>{lastInteract=performance.now()-ms},state:()=>stateName,meta:()=>meta,urls:()=>Object.keys(urls),pend:()=>!!pend,items:()=>items.querySelectorAll('.item').length,playN:()=>playN,stickerClass:()=>img.classList.contains('stk'),setFull:v=>{full=v;meters()}};
 boot();
 })();
 </script>

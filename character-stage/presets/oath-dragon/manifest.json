@@ -10,7 +10,9 @@
   "sleep": "sleep.webp",
   "hungry": "hungry.webp",
   "miss": "miss.webp",
-  "lift": "lift.webp"
+  "lift": "lift.webp",
+  "spicy": "spicy.webp",
+  "angry": "angry.webp"
  },
  "bgs": [
   {

@@ -848,14 +848,15 @@ function disturb(){
 function poke(){
   if(catching)return;
   if(resting){disturb();return}
-  say(pickLine(),2400);addMood(3);hop(1);happy(1200);
+  if(!document.body.classList.contains('hang'))say(pickLine(),2400);
+  addMood(3);hop(1);happy(1200);
 }
 function pat(){
   if(resting){disturb();return}
   if(catching){toast('接食物進行中，等遊戲結束再摸摸。');return}
   const now=performance.now();busyUntil=now+1900;happyUntil=now+1900;
   const b=petRect(),h=document.createElement('span');h.className='hand';h.textContent='🖐️';h.style.left=(b.cx-23)+'px';h.style.top=(b.t-2)+'px';fx.appendChild(h);h.addEventListener('animationend',()=>h.remove());
-  setTimeout(()=>{if(resting)return;hearts(4);addMood(8);hop(1);say(pickLine(),2200)},1500);
+  setTimeout(()=>{if(resting)return;hearts(4);addMood(8);hop(1);if(!document.body.classList.contains('hang'))say(pickLine(),2200)},1500);
 }
 setInterval(()=>{const lv=$('chat').value;if(lv==='quiet'||!started||document.hidden||resting||catching||focusing||!bubble.hidden)return;const t=performance.now();if(t<nextChat)return;say(pickLine(),2600);nextChat=t+(lv==='chatty'?rand(30000,60000):rand(90000,180000))},1000);
 img.addEventListener('click',poke);

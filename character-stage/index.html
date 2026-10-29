@@ -45,11 +45,15 @@ details>summary{cursor:pointer;font-weight:700;color:var(--brown);font-size:18px
 #bubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:4px;background:#fff;border:2px solid var(--brown);border-radius:16px;padding:6px 12px;font-size:16px;font-weight:500;white-space:nowrap;z-index:4}
 #fx,#items{position:absolute;inset:0;pointer-events:none}
 #fx{z-index:7}#items{z-index:2}
-.item{position:absolute;font-size:32px;line-height:1;animation:drop .5s ease-in both}
+.item{position:absolute;font-size:56px;line-height:1;animation:drop .5s ease-in both}
 .item.pop{animation:popout .45s ease-out forwards}
 .item.bounce{animation:itembounce .5s ease-in-out infinite}
 @keyframes drop{0%{transform:translateY(-150px);opacity:0}100%{transform:translateY(0);opacity:1}}
 @keyframes popout{0%{transform:scale(1)}100%{transform:scale(0);opacity:0}}
+#bgList{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bgt{position:relative;width:84px;height:63px;border-radius:10px;border:3px solid var(--line);background:#ddd center/cover no-repeat;cursor:pointer;flex:none}
+.bgt.on{border-color:var(--brown);box-shadow:0 0 0 2px var(--brown)}
+.bgt i{position:absolute;right:-8px;top:-8px;width:24px;height:24px;border-radius:50%;background:#a2461f;color:#fff;font:700 14px/24px sans-serif;text-align:center;font-style:normal}
 @keyframes itembounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
 .fx{position:absolute;font-size:26px;animation:floatup 1.4s ease-out forwards}
 @keyframes floatup{0%{opacity:1;transform:translateY(0) scale(.8)}100%{opacity:0;transform:translateY(-90px) scale(1.2)}}
@@ -59,7 +63,7 @@ details>summary{cursor:pointer;font-weight:700;color:var(--brown);font-size:18px
 #hud{position:absolute;right:12px;top:10px;z-index:8;background:rgba(255,255,255,.85);border:2px solid var(--brown);border-radius:14px;padding:4px 12px;font-weight:700;font-size:17px}
 #overlay{position:absolute;inset:0;z-index:9;background:rgba(40,25,15,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff8ee;text-align:center;padding:16px}
 #overlay b{font-size:30px;font-family:'Chiron GoRound TC','Noto Sans TC',sans-serif}
-.falling{position:absolute;font-size:34px;line-height:1;z-index:5;pointer-events:none}
+.falling{position:absolute;font-size:48px;line-height:1;z-index:5;pointer-events:none}
 
 /* ---- controls ---- */
 .tabs{display:flex;gap:8px;overflow-x:auto;margin:14px 0 10px;padding-bottom:4px}
@@ -96,7 +100,7 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <section class="card">
 <details open id="dLoad">
 <summary>① 放進你的角色（選好後會自動收起，點標題可以再打開）</summary>
-<p class="tip">只需一張「待機」圖片或 GIF 就能開始；其他動作可以之後慢慢補齊。</p>
+<p class="tip">只需一張「待機」圖片或 GIF 就能開始；其他動作可以之後慢慢補齊。想換新的：再選一次同狀態的檔案就會取代（待機也一樣，不用清除資料）。</p>
 <div class="row" style="margin-top:12px">
 <div class="grow"><p class="lab">一次選全部（可多選）</p><input type="file" id="fAll" accept="image/*" multiple>
 <p class="note">用檔名分配狀態，例如 idle.gif、eat.gif、happy.gif，或中文：待機、吃東西、開心、走路、睡覺、肚子餓、想念。沒有的狀態會用待機代替。</p></div>
@@ -125,9 +129,15 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <option value="pastel">粉彩</option>
 <option value="custom">我的背景圖</option>
 </select></div>
-<div class="grow"><p class="lab">自己的背景圖</p><input type="file" id="fBg" accept="image/*">
-<p class="note">建議橫式 4:3，例如 1600×1200。畫面會自動填滿並裁掉多的部分，重要的東西放中間。不要有文字和角色，檔案 2MB 以下比較順。</p></div>
+<div class="grow"><p class="lab">自己的背景圖（可以放好幾張）</p><input type="file" id="fBg" accept="image/*" multiple>
+<p class="note">這裡只放「背景」，角色（待機、走路…）請放在上面的①。建議橫式 4:3，例如 1600×1200。畫面會自動填滿並裁掉多的部分，重要的東西放中間。不要有文字和角色，檔案 2MB 以下比較順。</p></div>
 <div class="grow"><p class="lab">視角</p><select id="view"><option value="side">側面（站在地上）</option><option value="top">俯視（滿場跑）</option></select></div>
+</div>
+<div id="bgList"></div>
+<div class="row" style="margin-top:12px">
+<div class="grow"><p class="lab">背景自動輪替</p><select id="bgAuto"><option value="0">不輪替</option><option value="30">每 30 秒</option><option value="60">每 1 分鐘</option><option value="300">每 5 分鐘</option></select></div>
+<div class="grow"><p class="lab">走動方式</p><select id="moveMode"><option value="auto">自動：有「走路」動畫才會走動</option><option value="free">一律會走動</option><option value="still">一律原地不動</option></select></div>
+<button class="btn alt" id="bBgNext2" style="align-self:end;padding:0 16px" hidden>換下一張背景</button>
 </div>
 <div class="row" style="margin-top:12px">
 <div id="solidWrap" hidden><p class="lab">底色</p><input type="color" id="bgPick" value="#ffffff"></div>
@@ -189,6 +199,7 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <button class="btn needpet" id="bFeed" disabled>🍽️ 餵食</button>
 <button class="btn needpet" id="bPet" disabled>🤚 摸摸</button>
 <button class="btn needpet" id="bRest" disabled>🌙 休息</button>
+<button class="btn alt" id="bBgNext" hidden>🖼️ 換背景</button>
 </div>
 <p class="note">點舞台任何地方，牠會走過去。點牠本人，牠會說話。連續餵食時，新的食物會取代還沒吃的那個。</p>
 </section>
@@ -279,7 +290,7 @@ function ask(text,okLabel){
 
 /* ================= state ================= */
 const urls={},meta={},store={};   // urls: objectURL; meta: {name,transparent,color}; store: {buf,type,name} for backup+IDB
-let bgURL=null,started=false,restoring=true,bgManual=false,stateName='';
+let bgs=[],bgCur=null,bgLast=performance.now(),started=false,restoring=true,bgManual=false,stateName='';
 let lastInteract=performance.now(),eatUntil=0,happyUntil=0,nextSay=0,busyUntil=0,last=0;
 let resting=false,catching=false,focusing=false,mode='care',keys={};
 let mood=60,full=60,bubbleT=null,zT=null,wakeT=null,playN=0;
@@ -328,7 +339,7 @@ async function persist(key,rec){
 /* ================= settings ================= */
 function collect(){
   return {name:$('nameIn').value,size:$('size').value,scene:$('scene').value,view:$('view').value,bg:$('bgPick').value,bgManual:bgManual,
-    stickerMode:$('stickerMode').value,pix:$('pix').checked,lines:$('lines').value,goal:$('goal').value,food:food,toy:toy,foodIn:$('foodIn').value};
+    stickerMode:$('stickerMode').value,pix:$('pix').checked,lines:$('lines').value,goal:$('goal').value,food:food,toy:toy,foodIn:$('foodIn').value,bgCur:bgCur,bgAuto:$('bgAuto').value,moveMode:$('moveMode').value};
 }
 let saveT=null;
 function saveSettings(){if(restoring)return;clearTimeout(saveT);saveT=setTimeout(()=>{if(!lsSet('stage_settings',JSON.stringify(collect())))saveStatus('⚠ 設定沒能保存（瀏覽器不允許）。請用匯出備份留一份。','warn')},250)}
@@ -347,6 +358,9 @@ function applySettings(o){
   if(o.food)food=o.food;
   if(o.toy)toy=o.toy;
   if(o.foodIn!=null)$('foodIn').value=o.foodIn;
+  if(o.bgAuto&&[...$('bgAuto').options].some(x=>x.value===String(o.bgAuto)))$('bgAuto').value=String(o.bgAuto);
+  if(o.moveMode&&[...$('moveMode').options].some(x=>x.value===o.moveMode))$('moveMode').value=o.moveMode;
+  if(o.bgCur&&bgs.some(b=>b.id===o.bgCur))bgCur=o.bgCur;
   viewTop=($('view').value==='top');
   pet.style.width=$('size').value+'px';$('name').textContent=$('nameIn').value;
 }
@@ -402,13 +416,44 @@ async function addFile(state,file){
   }
   return ok;
 }
-async function setBg(blob,name){
+function bgKey(id){return id==='bg'?'bg':'bg:'+id}
+function curBgURL(){const b=bgs.find(x=>x.id===bgCur)||bgs[0];return b?b.url:null}
+async function addBg(blob,name,id){
   const url=URL.createObjectURL(blob);
   const t=await decode(url);
-  if(!t){URL.revokeObjectURL(url);toast('背景圖無法顯示：'+name+'，已略過。',4500);return false}
-  if(bgURL)URL.revokeObjectURL(bgURL);
-  bgURL=url;return true;
+  if(!t){URL.revokeObjectURL(url);toast('背景圖無法顯示：'+name+'，已略過。',4500);return null}
+  id=id||(Date.now().toString(36)+Math.random().toString(36).slice(2,5));
+  const e={id:id,url:url,name:name};bgs.push(e);
+  if(!bgCur||!bgs.some(b=>b.id===bgCur))bgCur=id;
+  return e;
 }
+function renderBgList(){
+  const box=$('bgList');box.innerHTML='';
+  bgs.forEach(b=>{
+    const d=document.createElement('div');d.className='bgt'+(b.id===bgCur?' on':'');d.style.backgroundImage='url('+b.url+')';d.title=b.name;
+    d.addEventListener('click',()=>{bgCur=b.id;$('scene').value='custom';bgLast=performance.now();applyScene();renderBgList();saveSettings()});
+    const x=document.createElement('i');x.textContent='×';x.title='刪除這張背景';
+    x.addEventListener('click',async ev=>{ev.stopPropagation();await removeBg(b.id)});
+    d.appendChild(x);box.appendChild(d);
+  });
+  const multi=bgs.length>1;$('bBgNext').hidden=!multi;$('bBgNext2').hidden=!multi;
+}
+async function removeBg(id){
+  const i=bgs.findIndex(b=>b.id===id);if(i<0)return;
+  URL.revokeObjectURL(bgs[i].url);bgs.splice(i,1);
+  const k=bgKey(id);delete store[k];try{await idbDel(k)}catch(e){}
+  if(bgCur===id)bgCur=bgs[0]?bgs[0].id:null;
+  if(!bgs.length&&$('scene').value==='custom')$('scene').value='room';
+  applyScene();renderBgList();saveSettings();
+}
+function nextBg(){
+  if(bgs.length<2)return;
+  const i=bgs.findIndex(b=>b.id===bgCur);bgCur=bgs[(i+1)%bgs.length].id;
+  $('scene').value='custom';bgLast=performance.now();applyScene();renderBgList();saveSettings();
+}
+$('bBgNext').addEventListener('click',nextBg);$('bBgNext2').addEventListener('click',nextBg);
+$('bgAuto').addEventListener('change',()=>{bgLast=performance.now();saveSettings()});
+setInterval(()=>{const sec=parseInt($('bgAuto').value,10)||0;if(!sec||bgs.length<2||document.hidden||!started)return;if(performance.now()-bgLast>=sec*1000)nextBg()},1000);
 
 /* 檔名配對：英文要整個單字，中文要完整詞；單字只有在整個檔名剛好等於它時才算 */
 const KEY={idle:{en:['idle'],zh:['待機','待命']},walk:{en:['walk'],zh:['走路','走動']},eat:{en:['eat'],zh:['吃東西','吃飯','進食']},
@@ -435,8 +480,9 @@ $('fAll').addEventListener('change',async e=>{
   for(const f of files){
     const m=matchStates(f.name);
     if(m.length===0){
-      if(!urls.idle&&!taken.idle&&!(await adoptIdle(f,taken,notes))){}
-      else if(urls.idle||taken.idle){ if(!taken['_adopted:'+f.name])notes.push('「'+f.name+'」看不出是哪個狀態，沒有使用（可改檔名，或用下方一個一個選）') }
+      if(!urls.idle&&!taken.idle){await adoptIdle(f,taken,notes)}
+      else if(!taken.idle&&await ask('「'+f.name+'」檔名看不出是哪個狀態。要用它取代目前的待機嗎？（不想換就取消，或改檔名含「走路」「待機」等字）','取代待機')){await adoptIdle(f,taken,notes)}
+      else notes.push('「'+f.name+'」看不出是哪個狀態，沒有使用（可改檔名，或用下方一個一個選）');
       continue;
     }
     if(m.length>1){notes.push('「'+f.name+'」可能是'+m.map(x=>ZH[x]).join('或')+'，請改檔名或一個一個選');continue}
@@ -453,15 +499,22 @@ STATES.forEach(x=>{
   d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':'')+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.addEventListener('change',async e=>{const f=e.target.files[0];if(f)await addFile(x[0],f);e.target.value=''});
-  d.appendChild(inp);$('slots').appendChild(d);
+  d.appendChild(inp);
+  if(x[0]!=='idle'){const rm=document.createElement('button');rm.type='button';rm.className='btn alt';rm.style.cssText='min-height:36px;margin-top:6px;font-size:14px;padding:0 10px';rm.textContent='移除這個動作';
+    rm.addEventListener('click',async()=>{const k=x[0];if(!urls[k])return;URL.revokeObjectURL(urls[k]);delete urls[k];delete meta[k];delete store[k];try{await idbDel(k)}catch(e){}renderLoaded();if(started)applyState(true)});d.appendChild(rm)}
+  $('slots').appendChild(d);
 });
 $('fBg').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;
-  if(await setBg(f,f.name)){
-    $('scene').value='custom';applyScene();refreshSticker();
-    await persist('bg',{buf:await f.arrayBuffer(),type:f.type||'image/jpeg',name:f.name});saveSettings();
+  const files=Array.from(e.target.files);let added=0;
+  for(const f of files){
+    if(f.type==='image/gif'||matchStates(f.name).length){
+      if(!(await ask('「'+f.name+'」看起來是角色動畫（GIF 或檔名像待機、走路…），通常不是背景。要把它當背景嗎？角色請放在上面的①。','當背景'))){continue}
+    }
+    const en=await addBg(f,f.name);
+    if(en){await persist(bgKey(en.id),{buf:await f.arrayBuffer(),type:f.type||'image/jpeg',name:f.name});bgCur=en.id;added++}
   }
   e.target.value='';
+  if(added){$('scene').value='custom';bgLast=performance.now();applyScene();renderBgList();saveSettings();if(added>1)toast('已加入 '+added+' 張背景，可以點縮圖切換，或設定自動輪替。')}
 });
 
 /* ================= scenes ================= */
@@ -475,9 +528,9 @@ const SCENES={
 function applyScene(){
   let s=$('scene').value;
   $('solidWrap').hidden=(s!=='solid');
-  if(s==='custom'&&!bgURL){s='room';$('scene').value='room'}
+  if(s==='custom'&&!curBgURL()){s='room';$('scene').value='room'}
   if(s==='solid')stage.style.background=$('bgPick').value;
-  else if(s==='custom')stage.style.background='#ddd url('+bgURL+') center/cover no-repeat';
+  else if(s==='custom')stage.style.background='#ddd url('+curBgURL()+') center/cover no-repeat';
   else stage.style.background=SCENES[s]||SCENES.room;
   refreshSticker();
 }
@@ -556,9 +609,12 @@ function spawnFx(ch,left,top){const s=document.createElement('span');s.className
 function hearts(n){const b=petRect();for(let i=0;i<n;i++)setTimeout(()=>spawnFx('❤️',b.cx-14+rand(-30,30),b.t+10+rand(0,20)),i*120)}
 
 /* ================= movement & interactions ================= */
-function goTo(tx,ty,cb,fast){P.tx=clamp(tx,0,Math.max(0,W()-PW()));P.ty=clamp(ty,0,YMAX());P.cb=cb||null;P.fast=!!fast;P.wander=false}
+function moveOn(){const m=$('moveMode').value;return m==='free'||(m==='auto'&&!!urls.walk)}
+function goTo(tx,ty,cb,fast){
+  if(!moveOn()){P.tx=null;P.cb=null;P.wander=false;if(cb)setTimeout(cb,550);return}
+  P.tx=clamp(tx,0,Math.max(0,W()-PW()));P.ty=clamp(ty,0,YMAX());P.cb=cb||null;P.fast=!!fast;P.wander=false}
 function cancelPending(){if(pend){pend.remove();pend=null}P.tx=null;P.cb=null;P.wander=false}
-function canWander(){return !resting&&!catching&&!focusing}
+function canWander(){return !resting&&!catching&&!focusing&&moveOn()}
 function stagePoint(e){const r=stage.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
 stage.addEventListener('pointerdown',e=>{
   if(!urls.idle||catching)return;
@@ -575,10 +631,11 @@ function feed(){
   if(catching){toast('接食物進行中，等遊戲結束再餵。');return}
   if(resting)wake();
   cancelPending();
-  const ix=rand(24,Math.max(40,W()-70)),iy=rand(0,YMAX());
+  let ix=rand(24,Math.max(40,W()-70)),iy=rand(0,YMAX());
+  if(!moveOn()){ix=clamp(P.x+PW()/2+(Math.random()<.5?-1:1)*rand(PW()*0.5,PW()*0.8)-28,8,Math.max(20,W()-64));iy=P.y}
   const el=placeItem(food,ix,iy),key=food.replace(/️/g,''),msg=FOODSAY[key]||'好好吃！';
   pend=el;
-  goTo(ix+16-PW()/2,iy,()=>{
+  goTo(ix+28-PW()/2,iy,()=>{
     pend=null;el.classList.add('pop');setTimeout(()=>el.remove(),500);
     addFull(18);addMood(key==='🌶'?-4:6);hop(1);eatUntil=performance.now()+1600;happy(2800);hearts(2);say(msg,1800);
   },false);
@@ -589,7 +646,7 @@ function throwToy(ix,iy){
   cancelPending();
   ix=clamp(ix,10,Math.max(20,W()-50));
   const el=placeItem(toy,ix,iy);pend=el;
-  goTo(ix+16-PW()/2,iy,()=>{
+  goTo(ix+28-PW()/2,iy,()=>{
     pend=null;el.classList.add('bounce');
     playN++;$('playN').textContent=playN;addMood(10);addFull(-3);hop(3);happy(1700);hearts(3);say('耶～好好玩！',1800);
     setTimeout(()=>{el.classList.remove('bounce');el.classList.add('pop');setTimeout(()=>el.remove(),500)},1600);
@@ -670,7 +727,7 @@ function stepCatch(dt){
   const rc=petRect(),hx0=rc.l+rc.w*0.18,hx1=rc.l+rc.w*0.82,hy0=rc.t+rc.h*0.1,hy1=rc.t+rc.h*0.7;
   for(let i=gItems.length-1;i>=0;i--){
     const it=gItems[i];it.y+=it.vy*dt;it.el.style.top=it.y+'px';
-    const cx=it.x+16,cy=it.y+16;
+    const cx=it.x+24,cy=it.y+24;
     if(cx>hx0&&cx<hx1&&cy>hy0&&cy<hy1){
       gScore+=it.bad?-1:(it.fav?3:1);spawnFx(it.bad?'💥':(it.fav?'⭐':'✨'),it.x,it.y-6);if(it.bad)hop(1);
       it.el.remove();gItems.splice(i,1);
@@ -801,7 +858,7 @@ function tick(t){
   img.style.transform='scaleX('+P.dir+')';
   if(P.moving){
     P.phase+=dt*(P.fast?18:11);
-    inner.style.transform='translateY('+(-Math.abs(Math.sin(P.phase))*6).toFixed(1)+'px) rotate('+(Math.sin(P.phase)*3.5).toFixed(1)+'deg)';
+    if(!urls.walk)inner.style.transform='translateY('+(-Math.abs(Math.sin(P.phase))*6).toFixed(1)+'px) rotate('+(Math.sin(P.phase)*3.5).toFixed(1)+'deg)';
   }else if(inner.style.transform){inner.style.transform=''}
   applyState();
   requestAnimationFrame(tick);
@@ -825,7 +882,7 @@ async function exportBackup(){
 async function wipeMemory(){
   Object.keys(urls).forEach(k=>{URL.revokeObjectURL(urls[k]);delete urls[k]});
   Object.keys(meta).forEach(k=>delete meta[k]);Object.keys(store).forEach(k=>delete store[k]);
-  if(bgURL){URL.revokeObjectURL(bgURL);bgURL=null}
+  bgs.forEach(b=>URL.revokeObjectURL(b.url));bgs=[];bgCur=null;renderBgList();
   img.removeAttribute('data-u');img.removeAttribute('src');
   try{await idbClear()}catch(e){}
   lsKeys().forEach(k=>{if(k&&/^stage_/.test(k))lsDel(k)});
@@ -839,11 +896,11 @@ async function importBackup(file){
     await wipeMemory();resetUI();restoring=true;
     for(const k of Object.keys(obj.assets)){
       const a=obj.assets[k],buf=b64ToBuf(a.data),blob=new Blob([buf],{type:a.type||'image/gif'});
-      if(k==='bg'){ if(await setBg(blob,a.name||'bg'))await persist('bg',{buf:buf,type:a.type,name:a.name}) }
+      if(k==='bg'||k.indexOf('bg:')===0){ const id=k==='bg'?'bg':k.slice(3);if(await addBg(blob,a.name||'bg',id))await persist(k,{buf:buf,type:a.type,name:a.name}) }
       else if(urls!==null&&STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,a.name||k))await persist(k,{buf:buf,type:a.type,name:a.name}) }
     }
     if(obj.records)Object.keys(obj.records).forEach(k=>{if(/^stage_(water_|best)/.test(k))lsSet(k,obj.records[k])});
-    applySettings(obj.settings);
+    applySettings(obj.settings);renderBgList();
     buildPicks('foodPicks',FOODS,food,c=>{food=c;$('foodIn').value='';saveSettings()});buildPicks('toyPicks',TOYS,toy,c=>{toy=c;saveSettings()});
     best=parseInt(lsGet('stage_best')||'0',10)||0;$('bestN').textContent=best;
     waterDay=todayKey();cups=parseInt(lsGet(waterKey(waterDay))||'0',10)||0;drawCups();
@@ -869,10 +926,11 @@ async function boot(){
     const all=await idbAll(),n=Object.keys(all).length;
     for(const k of Object.keys(all)){
       const rec=all[k],blob=new Blob([rec.buf],{type:rec.type||'image/gif'});
-      if(k==='bg'){ if(await setBg(blob,rec.name||'bg'))store.bg=rec }
+      if(k==='bg'||k.indexOf('bg:')===0){ const id=k==='bg'?'bg':k.slice(3);if(await addBg(blob,rec.name||'bg',id))store[k]=rec }
       else if(STATES.some(s=>s[0]===k)){ if(await setAsset(k,blob,rec.name||k))store[k]=rec }
     }
-    applyScene();
+    try{const st=JSON.parse(lsGet('stage_settings')||'null');if(st&&st.bgCur&&bgs.some(b=>b.id===st.bgCur))bgCur=st.bgCur;if(st&&st.scene==='custom'&&bgs.length)$('scene').value='custom'}catch(e){}
+    renderBgList();applyScene();
     saveStatus(n?'✓ 已從這個瀏覽器恢復你上次的角色與設定。':'✓ 這個瀏覽器可以保存；放進角色後，下次打開還在。','ok');
   }catch(e){
     db=null;

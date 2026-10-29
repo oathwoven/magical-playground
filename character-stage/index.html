@@ -208,13 +208,14 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 <button class="btn needpet" id="bFeed" disabled>🍽️ 餵食</button>
 <button class="btn needpet" id="bPet" disabled>🤚 摸摸</button>
 <button class="btn needpet" id="bRest" disabled>🌙 休息</button>
+<button class="btn needpet" id="bFire" disabled>🔥 練習噴火</button>
 <button class="btn alt" id="bBgNext" hidden>🖼️ 換背景</button>
 </div>
 <div class="row" style="margin-top:12px">
 <div class="grow"><p class="lab">休息多久</p><select id="restTime"><option value="10">10 秒</option><option value="30">30 秒</option><option value="60" selected>1 分鐘</option><option value="180">3 分鐘</option><option value="300">5 分鐘</option><option value="0">睡到我叫醒</option></select></div>
 <div class="grow"><p class="lab">睡覺時戳牠</p><select id="wakeMode"><option value="light" selected>會被吵醒</option><option value="deep">睡很沉，吵不醒</option></select></div>
 </div>
-<p class="note">點舞台任何地方，牠會走過去。點牠本人，牠會說話。摸摸會有一隻小手摸牠的頭。休息中可以按「叫醒」把牠叫起來。連續餵食時，新的食物會取代還沒吃的那個。</p>
+<p class="note">點舞台任何地方，牠會走過去。點牠本人，牠會說話。摸摸會有一隻小手摸牠的頭。「練習噴火」會讓牠心情變好，但很耗體力，牠太餓時會噴不出來。休息中可以按「叫醒」把牠叫起來。連續餵食時，新的食物會取代還沒吃的那個。</p>
 </section>
 
 <section class="card panel" data-p="play" hidden>
@@ -788,6 +789,20 @@ img.addEventListener('click',poke);
 $('bFeed').addEventListener('click',feed);
 $('bPet').addEventListener('click',pat);
 $('bRest').addEventListener('click',()=>{if(resting)wake();else rest()});
+let fireCool=0;
+function practiceFire(){
+  if(catching){toast('接食物進行中，等遊戲結束再練習噴火。');return}
+  if(resting){toast('牠正在睡覺，先叫醒牠。');return}
+  const now=performance.now();
+  if(now<fireCool)return;
+  if(full<35){say('肚子太餓了，噴不出火…先餵我吃的嘛。',2800);hop(1);return}
+  fireCool=now+7000;busyUntil=now+1900;happyUntil=now+1500;
+  say('看我的！呼——！',1300);
+  const b=petRect(),d=P.dir,fy=b.t+b.h*0.32,fx0=b.cx+d*b.w*0.42;
+  for(let i=0;i<7;i++)setTimeout(()=>spawnFx('🔥',fx0+d*(i*26)-14+rand(-6,6),fy+rand(-14,14)),250+i*90);
+  setTimeout(()=>{if(resting)return;addFull(-28);addMood(10);hop(1);say('噴火好耗體力…肚子咕嚕～',2600)},1500);
+}
+$('bFire').addEventListener('click',practiceFire);
 $('bThrow').addEventListener('click',()=>throwToy(rand(24,Math.max(40,W()-70)),rand(0,YMAX())));
 $('bClear').addEventListener('click',()=>{items.innerHTML='';cancelPending()});
 

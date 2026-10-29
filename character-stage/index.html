@@ -887,7 +887,7 @@ function land(){
   if($('chat').value!=='quiet'&&Math.random()<0.6)say(pick(LAND_SAY),1600);
 }
 function beginDrag(e){
-  drag.on=true;drag.fall=false;drag.vy=0;drag.pend=false;
+  clearTimeout(drag.holdT);drag.on=true;drag.fall=false;drag.vy=0;drag.pend=false;
   document.body.classList.add('lifting');
   cancelPending();P.tx=null;P.cb=null;P.wander=false;
   if(resting)wake('哇！被抓起來了！');
@@ -897,6 +897,7 @@ function beginDrag(e){
   dragPos(e);applyState(true);
 }
 function endDrag(){
+  clearTimeout(drag.holdT);
   if(drag.pend){drag.pend=false;return}
   if(!drag.on)return;
   drag.on=false;document.body.classList.remove('lifting');
@@ -912,13 +913,14 @@ img.addEventListener('pointerdown',e=>{
   drag.sx=e.clientX;drag.sy=e.clientY;drag.pend=true;drag.pid=e.pointerId;
   drag.fx=clamp((e.clientX-r.left)/(r.width||1),0,1);drag.fy=clamp((e.clientY-r.top)/(r.height||1),.18,.55);
   try{img.setPointerCapture(e.pointerId)}catch(_){}
+  clearTimeout(drag.holdT);const pe=e;drag.holdT=setTimeout(()=>{if(drag.pend&&!drag.on){drag.pend=false;beginDrag(pe)}},200);
 });
 img.addEventListener('pointermove',e=>{
   if(e.pointerId!==drag.pid)return;
   if(drag.pend&&!drag.on){if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>8){drag.pend=false;beginDrag(e)}return}
   if(drag.on)dragPos(e);
 });
-['pointerup','pointercancel','lostpointercapture'].forEach(n=>img.addEventListener(n,e=>{if(e.pointerId!==drag.pid)return;if(drag.pend&&!drag.on){drag.pend=false;return}endDrag()}));
+['pointerup','pointercancel','lostpointercapture'].forEach(n=>img.addEventListener(n,e=>{if(e.pointerId!==drag.pid)return;if(drag.pend&&!drag.on){drag.pend=false;clearTimeout(drag.holdT);return}endDrag()}));
 window.addEventListener('blur',()=>{if(drag.on)endDrag()});
 $('bFeed').addEventListener('click',feed);
 $('bPet').addEventListener('click',pat);

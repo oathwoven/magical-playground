@@ -274,7 +274,7 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 const $=id=>document.getElementById(id);
 const stage=$('stage'),pet=$('pet'),inner=$('inner'),img=$('petImg'),bubble=$('bubble'),fx=$('fx'),items=$('items'),hint=$('hint'),hud=$('hud'),overlay=$('overlay');
 const FAST=/fast/.test(location.hash);
-const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:40000, DECAY_MS=FAST?600:6000;
+const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:40000, DECAY_MS=FAST?600:12000;
 const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
 const IDLEX=[['idle2','待機 2'],['idle3','待機 3'],['idle4','待機 4']];
 const SLOTS=STATES.concat(IDLEX);
@@ -321,7 +321,8 @@ function meters(){$('mMood').style.width=mood+'%';$('mFull').style.width=full+'%
 function addMood(d){mood=clamp(mood+d,0,100);meters()}
 function addFull(d){full=clamp(full+d,0,100);meters()}
 meters();
-setInterval(()=>{ if(!started||document.hidden)return; addMood(-1);addFull(-2) },DECAY_MS);
+let decayN=0;
+setInterval(()=>{ if(!started||document.hidden)return; addFull(-1); if(++decayN%2===0)addMood(-1) },DECAY_MS);
 
 /* ================= IndexedDB ================= */
 let db=null;
@@ -657,12 +658,21 @@ soccer:'<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" 
 yarn:'<svg viewBox="0 0 56 56" width="56" height="56"><circle cx="28" cy="28" r="25" fill="#ee6f9d" stroke="#b83a6a" stroke-width="2"/><path d="M8 20 Q28 34 48 16M5 30 Q28 44 51 28M10 40 Q28 50 46 40M16 9 Q24 28 20 49M32 5 Q38 28 34 52M44 12 Q36 28 44 44" stroke="#ffb3cf" stroke-width="2.6" fill="none"/><path d="M42 46 Q52 50 54 40" stroke="#ee6f9d" stroke-width="3" fill="none"/></svg>',
 bell:'<svg viewBox="0 0 56 56" width="56" height="56"><defs><radialGradient id="tgl" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#d9a21b"/></radialGradient></defs><circle cx="28" cy="28" r="26" fill="url(#tgl)" stroke="#a87812" stroke-width="2"/><path d="M4 30 H52" stroke="#a87812" stroke-width="3"/><rect x="24" y="30" width="8" height="8" rx="3" fill="#a87812"/><ellipse cx="18" cy="14" rx="6" ry="3.5" fill="#fff" opacity=".6" transform="rotate(-30 18 14)"/></svg>'};
 const TOYS=['ball','soccer','yarn','bell'];
-function simulate(x0,vx0,toyItem){
+function simulate(x0,vx0,toyItem,obs){
   const maxX=Math.max(20,W()-56),dt=1/120,e=toyItem?0.62:0.42,traj=[];
   let y=Math.max(180,stage.clientHeight*0.72),vy=0,x=clamp(x0,0,maxX),vx=vx0,rot=rand(-12,12),t=0,n=0;
   while(t<4.5){
     vy-=1500*dt;y+=vy*dt;x+=vx*dt;
     if(x<0){x=0;vx=-vx*0.6}if(x>maxX){x=maxX;vx=-vx*0.6}
+    if(obs&&y<obs.h){
+      const cx=x+28;
+      if(cx>obs.l&&cx<obs.r){
+        const left=(cx-obs.l)<(obs.r-cx);   // 離哪一側近就被彈向哪一側
+        x=left?obs.l-28:obs.r-28;
+        vx=(left?-1:1)*Math.max(70,Math.abs(vx)*0.55);
+        if(vy<0&&y>obs.h*0.5){vy=Math.abs(vy)*0.4}
+      }
+    }
     let ground=false;
     if(y<=0){y=0;if(Math.abs(vy)>90){vy=-vy*e;if(!toyItem){vx*=0.6;rot+=rand(-14,14)}}else{vy=0;ground=true}}
     if(ground){const f=(toyItem?240:420)*dt;if(Math.abs(vx)<=f)vx=0;else vx-=Math.sign(vx)*f}
@@ -685,11 +695,13 @@ function placeItem(ch,ix,iy,kind){
   const baseRemove=el.remove.bind(el);el.remove=function(){sh.remove();baseRemove()};
   let vx0=toyItem?(Math.random()<0.5?-1:1)*rand(90,230):rand(-45,45);
   if(!moveOn())vx0*=0.35;
-  const traj=simulate(ix,vx0,toyItem),n=traj.length,t0=performance.now();
+  let obs=null;
+  if(Math.abs(P.y-iy)<45){const pr=pet.getBoundingClientRect();obs={l:P.x+PW()*0.16,r:P.x+PW()*0.84,h:Math.max(60,pr.height*0.7)}}
+  const traj=simulate(ix,vx0,toyItem,obs),n=traj.length,t0=performance.now();
   el._endX=traj[n-1][0];el._settleAt=t0+(n/60)*1000;
   function frame(now){
     if(!el.isConnected)return;
-    const i=Math.min(n-1,Math.floor((now-t0)/1000*60)),p=traj[i],k=Math.min(p[1],320)/320;
+    const i=Math.max(0,Math.min(n-1,Math.floor((now-t0)/1000*60))),p=traj[i],k=Math.min(p[1],320)/320;
     el.style.left=p[0]+'px';el.style.bottom=(8+iy+p[1])+'px';g.style.transform='rotate('+p[2].toFixed(1)+'deg)';
     sh.style.left=(p[0]+6)+'px';sh.style.bottom=(8+iy-4)+'px';sh.style.opacity=(1-k*0.7).toFixed(2);sh.style.transform='scaleX('+(1-k*0.45).toFixed(2)+')';
     if(i<n-1)requestAnimationFrame(frame);
@@ -760,6 +772,7 @@ let lastLine='',nextChat=performance.now()+rand(40000,80000);
 function pickLine(){const l=lines();let c=l[Math.floor(Math.random()*l.length)];if(l.length>1&&c===lastLine)c=l[(l.indexOf(c)+1)%l.length];lastLine=c;return c}
 function nudgeSleep(){say('Zzz…（睡得好沉）',1100);const b=petRect();spawnFx('💤',b.cx+10,b.t-4)}
 function poke(){
+  if(catching)return;
   if(resting){if($('wakeMode').value==='light')wake();else nudgeSleep();return}
   say(pickLine(),2400);addMood(3);hop(1);happy(1200);
 }
@@ -810,7 +823,7 @@ function startCatch(){
   if(resting)wake();
   cancelPending();items.innerHTML='';overlay.hidden=true;
   catching=true;gScore=0;gLeft=GAME_SEC;gSpawn=0.3;gPaused=false;P.y=0;catchX=P.x;
-  stage.style.touchAction='none';hud.hidden=false;hudUpdate();say('開始！',900);
+  stage.style.touchAction='none';hud.hidden=false;hudUpdate();bubble.hidden=true;say('開始！',900);
 }
 function spawnFall(){
   const bad=Math.random()<0.18,fav=!bad&&Math.random()<0.25,pool=['🍙','🍓','🍰','🐟','🍖','🥕','🍩','🍉'];

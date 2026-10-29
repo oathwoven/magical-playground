@@ -39,8 +39,9 @@ details>summary{cursor:pointer;font-weight:700;color:var(--brown);font-size:18px
 #pet{position:absolute;left:0;bottom:8px;width:160px;will-change:transform;z-index:3;transform-origin:50% 100%}
 #pet::after{content:'';position:absolute;left:10%;right:10%;bottom:-8px;height:18px;background:rgba(0,0,0,.42);border-radius:50%;filter:blur(2.5px);z-index:-1}
 #inner{transform-origin:50% 100%}
-#petImg{display:block;width:100%;height:auto;cursor:pointer;-webkit-user-drag:none;user-select:none}
+#petImg{display:block;width:100%;height:auto;cursor:grab;touch-action:none;-webkit-user-drag:none;user-select:none}
 .pixel #petImg{image-rendering:pixelated}
+body.lifting #petImg{cursor:grabbing}
 #petImg.stk{border-radius:22px;border:4px solid #fff;box-shadow:0 6px 14px rgba(0,0,0,.28)}
 #bubble{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);margin-bottom:4px;background:#fff;border:2px solid var(--brown);border-radius:16px;padding:6px 12px;font-size:16px;font-weight:500;white-space:nowrap;z-index:4}
 #fx,#items{position:absolute;inset:0;pointer-events:none}
@@ -309,7 +310,8 @@ const FAST=/fast/.test(location.hash);
 const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:300000, DECAY_MS=FAST?600:90000;
 const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
 const IDLEX=[['idle2','待機 2'],['idle3','待機 3'],['idle4','待機 4']];
-const SLOTS=STATES.concat(IDLEX);
+const EXTRA=[['lift','提起來']];
+const SLOTS=STATES.concat(IDLEX,EXTRA);
 const ZH={};SLOTS.forEach(s=>ZH[s[0]]=s[1]);
 let idleKey='idle',idleNext=0;
 function idleVariants(){return ['idle','idle2','idle3','idle4'].filter(k=>urls[k])}
@@ -347,6 +349,7 @@ let lastInteract=performance.now(),eatUntil=0,happyUntil=0,nextSay=0,busyUntil=0
 let resting=false,catching=false,focusing=false,mode='care',keys={};
 let mood=80,full=80,bubbleT=null,zT=null,wakeT=null,playN=0;
 let food='🍙',toy='ball';
+const drag={on:false,fall:false,vy:0,pid:null,sx:0,sy:0,fx:.5,fy:.3,pend:false,noClick:0};
 const P={x:20,y:0,tx:null,ty:null,cb:null,fast:false,wander:false,dir:1,idle:1.5,phase:0,moving:false};
 let pend=null;   // 目前等待牠走過去處理的食物／玩具
 
@@ -528,11 +531,11 @@ setInterval(()=>{const sec=parseInt($('bgAuto').value,10)||0;if(!sec||bgs.length
 
 /* 檔名配對：英文要整個單字，中文要完整詞；單字只有在整個檔名剛好等於它時才算 */
 const KEY={idle:{en:['idle'],zh:['待機','待命']},walk:{en:['walk'],zh:['走路','走動']},eat:{en:['eat'],zh:['吃東西','吃飯','進食']},
-  happy:{en:['happy'],zh:['開心','高興']},sleep:{en:['sleep'],zh:['睡覺','睡眠']},hungry:{en:['hungry'],zh:['肚子餓','餓了','飢餓']},miss:{en:['miss','missing'],zh:['想念','思念']}};
+  happy:{en:['happy'],zh:['開心','高興']},sleep:{en:['sleep'],zh:['睡覺','睡眠']},hungry:{en:['hungry'],zh:['肚子餓','餓了','飢餓']},miss:{en:['miss','missing'],zh:['想念','思念']},lift:{en:['lift','carry'],zh:['提起','拎起','抱起','拖曳']}};
 const SINGLE={walk:'走',eat:'吃',sleep:'睡',hungry:'餓',miss:'想'};
 function matchStates(fname){
   const base=fname.replace(/\.[^.]+$/,''),low=base.toLowerCase(),found=[];
-  STATES.forEach(s=>{
+  STATES.concat(EXTRA).forEach(s=>{
     const k=s[0],K=KEY[k];let hit=false;
     K.en.forEach(w=>{if(new RegExp('(^|[^a-z])'+w+'([^a-z]|$)').test(low))hit=true});
     K.zh.forEach(w=>{if(base.indexOf(w)>-1)hit=true});
@@ -568,7 +571,7 @@ $('fAll').addEventListener('change',async e=>{
 });
 SLOTS.forEach(x=>{
   const d=document.createElement('div');d.className='grow';
-  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':(x[0].indexOf('idle')===0?'（選填，待機時會輪流演）':''))+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
+  d.innerHTML='<p class="lab">'+x[1]+(x[0]==='idle'?'（必選）':(x[0].indexOf('idle')===0?'（選填，待機時會輪流演）':(x[0]==='lift'?'（選填，用滑鼠按住拖曳角色時演）':'')))+'</p><p class="note slotname" data-s="'+x[0]+'" style="margin:0 0 4px"></p>';
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
   inp.addEventListener('change',async e=>{const f=e.target.files[0];if(f)await addFile(x[0],f);e.target.value=''});
   d.appendChild(inp);
@@ -640,6 +643,7 @@ function resetUI(){
 }
 function desired(){
   const t=performance.now();
+  if(drag.on)return 'lift';
   if(resting)return 'sleep';
   if(t<eatUntil)return 'eat';
   if(t<happyUntil)return 'happy';
@@ -860,7 +864,62 @@ function pat(){
   setTimeout(()=>{if(resting)return;hearts(4);addMood(8);hop(1);say(pickLine(),2200)},1500);
 }
 setInterval(()=>{const lv=$('chat').value;if(lv==='quiet'||!started||document.hidden||resting||catching||focusing||!bubble.hidden)return;const t=performance.now();if(t<nextChat)return;say(pickLine(),2600);nextChat=t+(lv==='chatty'?rand(30000,60000):rand(90000,180000))},1000);
-img.addEventListener('click',poke);
+img.addEventListener('click',()=>{if(performance.now()<drag.noClick)return;poke()});
+/* ===== 按住拖曳：把角色提起來換位置（放開就掉回地面；提早放開會中斷提起動畫） ===== */
+const LIFT_SAY=['哇～飛起來了！','咦咦咦～','抓到我了！','好高好高～'],LAND_SAY=['落地～','這裡也不錯。','嘿咻。','謝謝你帶我來這裡。'];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function dragPos(e){
+  const p=stagePoint(e),h=img.offsetHeight||PW();
+  P.x=clamp(p.x-PW()/2,0,Math.max(0,W()-PW()));
+  const bottom=p.y+(1-drag.fy)*h;
+  P.y=clamp(stage.clientHeight-8-bottom,0,Math.max(0,stage.clientHeight-8-h));
+}
+function stepDrag(dt){
+  if(drag.on)return;
+  // 放手後：高過地面活動範圍就掉下來
+  const ym=YMAX();
+  drag.vy+=1500*dt;P.y-=drag.vy*dt;
+  if(P.y<=ym){P.y=ym;land()}
+}
+function land(){
+  drag.fall=false;drag.vy=0;P.y=clamp(P.y,0,YMAX());P.idle=rand(3,7);P.tx=null;
+  hop(1);happy(900);
+  if($('chat').value!=='quiet'&&Math.random()<0.6)say(pick(LAND_SAY),1600);
+}
+function beginDrag(e){
+  drag.on=true;drag.fall=false;drag.vy=0;drag.pend=false;
+  document.body.classList.add('lifting');
+  cancelPending();P.tx=null;P.cb=null;P.wander=false;
+  if(resting)wake('哇！被抓起來了！');
+  lastInteract=performance.now();
+  bubble.hidden=true;
+  if($('chat').value!=='quiet')say(pick(LIFT_SAY),1500);
+  dragPos(e);applyState(true);
+}
+function endDrag(){
+  if(drag.pend){drag.pend=false;return}
+  if(!drag.on)return;
+  drag.on=false;document.body.classList.remove('lifting');
+  drag.noClick=performance.now()+350;
+  lastInteract=performance.now();
+  if(P.y>YMAX()+1)drag.fall=true;else land();
+  applyState(true);
+}
+img.addEventListener('pointerdown',e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  if(catching||!urls.idle||drag.on||drag.fall)return;
+  const r=img.getBoundingClientRect();
+  drag.sx=e.clientX;drag.sy=e.clientY;drag.pend=true;drag.pid=e.pointerId;
+  drag.fx=clamp((e.clientX-r.left)/(r.width||1),0,1);drag.fy=clamp((e.clientY-r.top)/(r.height||1),.18,.55);
+  try{img.setPointerCapture(e.pointerId)}catch(_){}
+});
+img.addEventListener('pointermove',e=>{
+  if(e.pointerId!==drag.pid)return;
+  if(drag.pend&&!drag.on){if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>8){drag.pend=false;beginDrag(e)}return}
+  if(drag.on)dragPos(e);
+});
+['pointerup','pointercancel','lostpointercapture'].forEach(n=>img.addEventListener(n,e=>{if(e.pointerId!==drag.pid)return;if(drag.pend&&!drag.on){drag.pend=false;return}endDrag()}));
+window.addEventListener('blur',()=>{if(drag.on)endDrag()});
 $('bFeed').addEventListener('click',feed);
 $('bPet').addEventListener('click',pat);
 $('bRest').addEventListener('click',()=>{if(resting)wake();else rest()});
@@ -1048,6 +1107,7 @@ function tick(t){
   const w=W(),pw=PW(),ym=YMAX();
   P.moving=false;
   if(catching){stepCatch(dt)}
+  else if(drag.on||drag.fall){stepDrag(dt)}
   else if(t>busyUntil&&!resting){
     if(P.tx!=null){
       const dx=P.tx-P.x,dy=P.ty-P.y,dist=Math.hypot(dx,dy);
@@ -1062,8 +1122,8 @@ function tick(t){
       if(P.idle<=0){P.tx=clamp(P.x+rand(-170,170),0,Math.max(0,w-pw));P.ty=rand(0,ym);P.wander=true;P.cb=null}
     }
   }
-  P.x=clamp(P.x,0,Math.max(0,w-pw));P.y=clamp(P.y,0,ym);
-  const s=viewTop?(1.06-0.26*(P.y/(ym||1))):(1-0.28*(P.y/(ym||1)));
+  P.x=clamp(P.x,0,Math.max(0,w-pw));if(!(drag.on||drag.fall))P.y=clamp(P.y,0,ym);
+  const s=(drag.on||drag.fall)?1:viewTop?(1.06-0.26*(P.y/(ym||1))):(1-0.28*(P.y/(ym||1)));
   pet.style.transform='translate('+P.x.toFixed(1)+'px,'+(-P.y).toFixed(1)+'px) scale('+s.toFixed(3)+')';
   img.style.transform='scaleX('+P.dir+')';
   if(P.moving){

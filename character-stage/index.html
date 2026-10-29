@@ -274,7 +274,7 @@ footer{font-size:15px;color:#735d4d;text-align:right;margin-top:24px}
 const $=id=>document.getElementById(id);
 const stage=$('stage'),pet=$('pet'),inner=$('inner'),img=$('petImg'),bubble=$('bubble'),fx=$('fx'),items=$('items'),hint=$('hint'),hud=$('hud'),overlay=$('overlay');
 const FAST=/fast/.test(location.hash);
-const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:40000, DECAY_MS=FAST?600:12000;
+const GAME_SEC=FAST?6:30, MISS_MS=FAST?15000:300000, DECAY_MS=FAST?600:90000;
 const STATES=[['idle','待機'],['walk','走路'],['eat','吃東西'],['happy','開心'],['sleep','睡覺'],['hungry','肚子餓'],['miss','想念']];
 const IDLEX=[['idle2','待機 2'],['idle3','待機 3'],['idle4','待機 4']];
 const SLOTS=STATES.concat(IDLEX);
@@ -311,7 +311,7 @@ const urls={},meta={},store={};   // urls: objectURL; meta: {name,transparent,co
 let bgs=[],bgCur=null,bgLast=performance.now(),started=false,restoring=true,bgManual=false,stateName='';
 let lastInteract=performance.now(),eatUntil=0,happyUntil=0,nextSay=0,busyUntil=0,last=0;
 let resting=false,catching=false,focusing=false,mode='care',keys={};
-let mood=60,full=60,bubbleT=null,zT=null,wakeT=null,playN=0;
+let mood=80,full=80,bubbleT=null,zT=null,wakeT=null,playN=0;
 let food='🍙',toy='ball';
 const P={x:20,y:0,tx:null,ty:null,cb:null,fast:false,wander:false,dir:1,idle:1.5,phase:0,moving:false};
 let pend=null;   // 目前等待牠走過去處理的食物／玩具

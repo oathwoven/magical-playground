@@ -706,9 +706,10 @@ function checkAngry(){
 function onAngry(){
   if(!started||!urls.angry)return;
   if(!pend){P.tx=null;P.cb=null;P.wander=false}
-  if($('chat').value!=='quiet')say('哼！我不理你了！',2200);
-  const wait=Math.max(2800,spicyUntil-performance.now()+600);
-  setTimeout(()=>{if(angryOn()&&!resting&&!catching&&!pend&&!drag.on&&!drag.fall)rest(true)},wait);
+  const spicyLeft=Math.max(0,spicyUntil-performance.now());
+  // 辣椒動畫演完才開始氣；氣一陣子（正式版約 10 秒）才去睡
+  setTimeout(()=>{if(angryOn()&&!resting&&$('chat').value!=='quiet')say('哼！我不理你了！',2600)},spicyLeft+300);
+  setTimeout(()=>{if(angryOn()&&!resting&&!catching&&!pend&&!drag.on&&!drag.fall)rest(true)},spicyLeft+(FAST?4000:10000));
 }
 function onCalm(){if(started&&$('chat').value!=='quiet')say('…好啦，不氣了。',2200)}
 function hearts(n){const b=petRect();for(let i=0;i<n;i++)setTimeout(()=>spawnFx('❤️',b.cx-14+rand(-30,30),b.t+10+rand(0,20)),i*120)}
